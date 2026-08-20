@@ -20,12 +20,16 @@ class ReviewData(vf.TaskData):
 
 class ReviewTask(vf.Task[ReviewData]):
     @vf.reward
-    async def defect_recall(self, trace: vf.Trace) -> float:
-        ...  # % dos defeitos semeados citados no review (matching via judge)
+    async def f1(self, trace: vf.Trace) -> float:
+        ...  # harmônica de recall e precision; matching via judge (extrator + matcher)
 
-    @vf.reward
+    @vf.metric
+    async def recall(self, trace: vf.Trace) -> float:
+        ...  # defeitos semeados citados / defeitos semeados
+
+    @vf.metric
     async def precision(self, trace: vf.Trace) -> float:
-        ...  # penaliza issues inventadas (falso alarme)
+        ...  # issues verdadeiras / issues apontadas (distractor isenta)
 
 class ArchReviewTaskset(vf.Taskset[ReviewTask, vf.TasksetConfig]):
     def load(self) -> list[ReviewTask]:
@@ -34,8 +38,10 @@ class ArchReviewTaskset(vf.Taskset[ReviewTask, vf.TasksetConfig]):
 __all__ = ["ArchReviewTaskset"]
 ```
 
+> **Corrigido (issue #8):** `verifiers.v1` soma rewards nomeados — `Trace.reward = sum(r.value for r in self.rewards.values())`. Dois `@vf.reward` (recall + precision) somariam recall+precision, não F1. Por isso o reward é um único `f1`; recall, precision e métricas por categoria viram `@vf.metric`.
+
 ## Antes de implementar, decidir (checklist da skill oficial)
 - Campos do dataset; necessidade de tools (aqui: nenhuma — single-turn review);
 - controle de fluxo (single-turn; sem user simulado);
-- rewards (recall + precision) e métricas extras (por categoria de defeito);
+- rewards (um F1 como reward único; recall, precision e por-categoria como metrics);
 - judge: sim — matching semântico entre issue apontada e defeito semeado (LLM judge com rubrica).
