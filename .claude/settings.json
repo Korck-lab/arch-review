@@ -1,0 +1,21 @@
+{
+  "env": {
+    "ENABLE_TOOL_SEARCH": "auto:3"
+  },
+  "permissions": {
+    "deny": [
+      "CronCreate",
+      "CronDelete",
+      "CronList",
+      "DesignSync",
+      "NotebookEdit",
+      "PushNotification",
+      "RemoteTrigger"
+    ]
+  },
+  "disableArtifact": true,
+  "disableRemoteControl": true,
+  "disableClaudeAiConnectors": true,
+  "syncClaudeAiSkills": false,
+  "outputStyle": "Concise STE100"
+}

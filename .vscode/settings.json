@@ -1,0 +1,19 @@
+{
+  "search.followSymlinks": false,
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/build/**": true,
+    "**/.cache/**": true
+  },
+  "explorer.autoReveal": false,
+  "telemetry.telemetryLevel": "off",
+  "editor.lightbulb.enabled": "off",
+  "editor.codeLens": false,
+  "git.autorefresh": false,
+  "git.autoFetch": false,
+  "git.enabled": true,
+  "search.useIgnoreFiles": true
+}
