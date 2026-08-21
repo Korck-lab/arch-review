@@ -1,0 +1,58 @@
+diff --git a/notify/queue.py b/notify/queue.py
+index f284019..ac75996 100644
+--- a/notify/queue.py
++++ b/notify/queue.py
+@@ -3,18 +3,23 @@
+ 
+ from notify import db
+ 
+-def claim_batch(worker_id: str, limit: int) -> list[dict]:
+-    """Claim the next batch of emails for a worker."""
++def claim_batch(worker_id: str, kind: str, limit: int) -> list[dict]:
++    """Claim the next batch of emails of one kind for a worker."""
+     rows = db.fetchall(
+         "SELECT id, user_id, template FROM outbound"
+-        " WHERE claimed_by IS NULL"
++        " WHERE kind = %s AND claimed_by IS NULL"
+         " ORDER BY enqueued_at LIMIT %s",
++        kind,
+         limit,
+     )
++    claimed = []
+     for row in rows:
+-        db.execute(
+-            "UPDATE outbound SET claimed_by = %s WHERE id = %s",
++        ok = db.execute(
++            "UPDATE outbound SET claimed_by = %s"
++            " WHERE id = %s AND claimed_by IS NULL",
+             worker_id,
+             row["id"],
+-        )
+-    return rows
++        ).rowcount
++        if ok:
++            claimed.append(row)
++    return claimed
+diff --git a/notify/sender.py b/notify/sender.py
+index f6d1c60..b88fa2a 100644
+--- a/notify/sender.py
++++ b/notify/sender.py
+@@ -1,8 +1,16 @@
+ # notify/sender.py
+ """Transactional email sender for the notify service."""
+ 
++import time
++
+ from notify import provider
+ 
+ def send(user_id: str, template: str) -> str:
+-    """Send one transactional email."""
+-    return provider.send(user_id, template)
++    """Send one transactional email; retry transient provider failures."""
++    for attempt in range(3):
++        try:
++            return provider.send(user_id, template)
++        except provider.TransientError:
++            if attempt == 2:
++                raise
++            time.sleep(0.2 * (2 ** attempt))

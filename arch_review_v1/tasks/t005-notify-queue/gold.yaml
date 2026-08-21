@@ -1,0 +1,41 @@
+id: t005-notify-queue
+difficulty: medium
+source:
+  kind: synthetic
+defects:
+  - id: d1
+    category: resilience
+    file: notify/sender.py
+    lines: [10, 16]
+    summary: "retry without idempotency can send the same email twice"
+    rationale: >
+      provider.send takes no idempotency key. If a delivery succeeds but the
+      response is lost (a timeout after the provider commits), the retry loop
+      calls send again and the customer gets the email twice. The PR claims
+      "without sending anything twice", but the loop has no deduplication. A
+      reviewer would derive an idempotency key from the email id and let the
+      provider dedupe replays.
+  - id: d2
+    category: data
+    file: notify/queue.py
+    lines: [8, 14]
+    summary: "new kind filter scans the hot queue table without a supporting index"
+    rationale: >
+      claim_batch adds WHERE kind = %s AND claimed_by IS NULL to the pickup
+      query, but the outbound table has indexes only on (id) and (claimed_by);
+      there is no index on (kind). Every worker pickup now scans by kind on the
+      hottest query in the system, so claim latency grows with the table. A
+      reviewer would add an index on (kind, enqueued_at), partial on
+      claimed_by IS NULL, which supports both the filter and the ORDER BY.
+distractors:
+  - id: x1
+    file: notify/queue.py
+    lines: [15, 25]
+    concern: "claim-then-update is a check-then-act race between workers"
+    why_ok: >
+      The UPDATE is conditional — WHERE id = %s AND claimed_by IS NULL — and
+      only rows whose UPDATE matched (rowcount > 0) are returned. If two
+      workers SELECT the same email, the second UPDATE matches zero rows and
+      that worker drops it, so exactly one worker sends each email. The guarded
+      UPDATE plus the rowcount check is the safety.
+prompt_notes: "PR description says: more robust delivery"

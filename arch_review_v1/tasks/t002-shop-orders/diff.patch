@@ -1,0 +1,78 @@
+diff --git a/shop/catalog.py b/shop/catalog.py
+new file mode 100644
+index 0000000..474b70a
+--- /dev/null
++++ b/shop/catalog.py
+@@ -0,0 +1,21 @@
++# shop/catalog.py
++"""Product lookups for the shop API."""
++
++from functools import lru_cache
++
++from shop import db
++
++@lru_cache(maxsize=512)
++def _cached_title(product_id: str) -> str:
++    """Title of an existing product; missing ids are not cached."""
++    row = db.fetchone("SELECT title FROM products WHERE id = %s", product_id)
++    if row is None:
++        raise KeyError(product_id)
++    return row["title"]
++
++def product_title(product_id: str) -> str:
++    """Title of a product; 'Unknown product' for a missing id."""
++    try:
++        return _cached_title(product_id)
++    except KeyError:
++        return "Unknown product"
+diff --git a/shop/orders.py b/shop/orders.py
+index b137c59..b4cac77 100644
+--- a/shop/orders.py
++++ b/shop/orders.py
+@@ -16,22 +16,30 @@ class OrderView:
+ def list_orders(customer_id: str) -> list[OrderView]:
+     """Return every order a customer placed, newest first."""
+     rows = db.fetchall(
+-        "SELECT o.id, o.customer_id, o.total_cents, c.name AS customer_name"
+-        " FROM orders o JOIN customers c ON c.id = o.customer_id"
+-        " WHERE o.customer_id = %s ORDER BY o.created_at DESC",
++        "SELECT id, customer_id, total_cents FROM orders"
++        " WHERE customer_id = %s ORDER BY created_at DESC",
+         customer_id,
+     )
+-    return [
+-        OrderView(
+-            order_id=row["id"],
+-            customer_name=row["customer_name"],
+-            items=[
+-                product_title(r["product_id"])
+-                for r in db.fetchall(
+-                    "SELECT product_id FROM order_items WHERE order_id = %s", row["id"]
+-                )
+-            ],
+-            total_cents=row["total_cents"],
++    views = []
++    for row in rows:
++        try:
++            customer = db.fetchone(
++                "SELECT name FROM customers WHERE id = %s", row["customer_id"]
++            )
++        except Exception:
++            customer = None
++        product_ids = [
++            r["product_id"]
++            for r in db.fetchall(
++                "SELECT product_id FROM order_items WHERE order_id = %s", row["id"]
++            )
++        ]
++        views.append(
++            OrderView(
++                order_id=row["id"],
++                customer_name=customer["name"] if customer else "Unknown",
++                items=[product_title(pid) for pid in product_ids],
++                total_cents=row["total_cents"],
++            )
+         )
+-        for row in rows
+-    ]
++    return views

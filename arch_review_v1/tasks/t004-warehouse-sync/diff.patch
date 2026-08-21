@@ -1,0 +1,80 @@
+diff --git a/warehouse/app.py b/warehouse/app.py
+index c7a9153..f40115c 100644
+--- a/warehouse/app.py
++++ b/warehouse/app.py
+@@ -3,6 +3,7 @@
+ 
+ from flask import Flask, jsonify
+ 
++from warehouse.sync import request_sync
+ from warehouse.store import connection
+ 
+ app = Flask(__name__)
+@@ -14,3 +15,9 @@ def get_db():
+ @app.get("/health")
+ def health():
+     return jsonify(ok=True)
++
++@app.post("/sync")
++def sync_now():
++    """Queue one sync pass; do not run it in the request."""
++    request_sync()
++    return jsonify(started=True)
+diff --git a/warehouse/sync.py b/warehouse/sync.py
+index faa2325..d9f631b 100644
+--- a/warehouse/sync.py
++++ b/warehouse/sync.py
+@@ -1,13 +1,22 @@
+ # warehouse/sync.py
+ """Inventory sync job for the warehouse service."""
+ 
+-import os
++import json
++import time
++import urllib.request
+ 
+ from warehouse.app import get_db
++from warehouse.config import HUB_URL
++
++SYNC_INTERVAL_SECONDS = 3600
++
++def request_sync() -> None:
++    """Queue one sync pass; the scheduler runs it from the jobs table."""
++    db = get_db()
++    db.execute("INSERT INTO sync_jobs (requested_at) VALUES (now())")
+ 
+ def sync_inventory() -> None:
+-    """Push local inventory deltas to the hub on the configured interval."""
+-    interval_seconds = int(os.environ["SYNC_INTERVAL_SECONDS"])
++    """Push local inventory deltas to the hub."""
+     db = get_db()
+     for delta in db.iter_deltas():
+         _push(delta)
+@@ -15,3 +24,27 @@ def sync_inventory() -> None:
+ 
+ def _push(delta: dict) -> None:
+     """One POST to the inventory hub; the hub is idempotent by delta id."""
++    time.sleep(0.05)  # throttle the hub
++    urllib.request.urlopen(
++        f"{HUB_URL}/inventory",
++        data=json.dumps(delta).encode(),
++        timeout=10,
++    )
++
++def run_forever() -> None:
++    """Run one sync pass per queued job, then sleep until the next poll."""
++    while True:
++        _drain_jobs()
++        time.sleep(SYNC_INTERVAL_SECONDS)
++
++def _drain_jobs() -> None:
++    """Run one sync pass for every unprocessed queued job."""
++    db = get_db()
++    for job in db.fetchall(
++        "SELECT id FROM sync_jobs WHERE processed_at IS NULL"
++        " ORDER BY requested_at"
++    ):
++        sync_inventory()
++        db.execute(
++            "UPDATE sync_jobs SET processed_at = now() WHERE id = %s", job["id"]
++        )

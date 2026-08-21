@@ -1,7 +1,7 @@
 # Execution plan (estimate 1–2 business days)
 
 ## Phase 1 — Dataset (the bulk of the value; ~half a day+)
-- [ ] Write 6 pilot tasks (1 per main category), with complete gold.yaml
+- [x] Write 6 pilot tasks (1 per main category), with complete gold.yaml
 - [ ] Validate format by running 1 model by hand (no verifiers yet)
 - [ ] Complete 30 tasks (balance category × difficulty)
 

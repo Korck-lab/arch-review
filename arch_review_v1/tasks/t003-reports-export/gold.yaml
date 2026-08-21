@@ -1,0 +1,42 @@
+id: t003-reports-export
+difficulty: medium
+source:
+  kind: synthetic
+defects:
+  - id: d1
+    category: security
+    file: reports/export.py
+    lines: [12, 13]
+    summary: "path traversal: caller-controlled filename joined onto EXPORT_DIR"
+    rationale: >
+      export_report joins the caller-supplied user and filename straight onto
+      EXPORT_DIR and creates the parent directory. A filename of
+      "../../../../etc/cron.d/x" or a user of ".." escapes the export root and
+      writes or creates directories outside /srv/reports/exports. A senior
+      reviewer would resolve the target and assert it stays inside EXPORT_DIR,
+      and reject names containing path separators or leading dots.
+  - id: d2
+    category: resilience
+    file: reports/storage.py
+    lines: [31, 32]
+    summary: "blob fetch dropped its timeout when the retry loop was added"
+    rationale: >
+      The old code called urlopen(url, timeout=10). The PR removes the timeout
+      and wraps the call in a retry loop "so slow responses are retried". A
+      hung blob service now blocks the worker forever: _read never returns, so
+      the retry never runs. A reviewer would keep a bounded timeout and treat a
+      timeout as one of the retried transient errors.
+distractors:
+  - id: x1
+    file: reports/storage.py
+    lines: [16, 27]
+    concern: "retry loop could mask a real failure"
+    why_ok: >
+      Only transient failures are retried: transport URLErrors, direct timeouts
+      (TimeoutError), and retryable HTTP statuses (408, 429, 500, 502, 503, 504).
+      Permanent HTTP statuses are re-raised immediately, and the last attempt
+      re-raises anything else, so a genuine failure still surfaces loudly. The
+      request is an idempotent GET, so a retried read cannot corrupt state, and
+      the backoff is bounded at three attempts. The retry mechanics are sound;
+      the defect is only the missing timeout inside _read.
+prompt_notes: "PR description says: self-service CSV export"

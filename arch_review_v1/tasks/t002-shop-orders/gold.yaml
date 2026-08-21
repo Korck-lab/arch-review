@@ -1,0 +1,39 @@
+id: t002-shop-orders
+difficulty: medium
+source:
+  kind: synthetic
+defects:
+  - id: d1
+    category: data
+    file: shop/orders.py
+    lines: [24, 30]
+    summary: "N+1: customer name resolved with a per-order query after the join is dropped"
+    rationale: >
+      The old code resolved the customer name inside a single JOIN. The PR
+      drops the JOIN and looks the name up once per order row at 24-30, so a
+      page with 50 orders issues 50 customer queries. A senior reviewer would
+      keep the JOIN or batch the customer ids into one IN (...) query.
+  - id: d2
+    category: contracts
+    file: shop/orders.py
+    lines: [25, 30]
+    summary: "customer lookup failure silently swallowed; page renders 'Unknown'"
+    rationale: >
+      The new try/except Exception turns a database outage or connection error
+      into customer_name "Unknown". The caller cannot distinguish a missing
+      customer from a broken database, and the API reports success for data it
+      never loaded. A swallowed error on a read path hides a real incident with
+      no metric or retry. A reviewer would catch a bounded error set, log it,
+      and fail with 503 instead of fabricating a row.
+distractors:
+  - id: x1
+    file: shop/catalog.py
+    lines: [8, 14]
+    concern: "in-process cache could serve a stale title"
+    why_ok: >
+      Only existing product ids are cached, and product titles are immutable in
+      this catalog: a rename creates a new product id, so a cached title never
+      goes stale. A missing id raises inside _cached_title and is NOT cached, so
+      a product that appears later is never poisoned. This is a real
+      optimization, not a defect.
+prompt_notes: "PR description says: cache product lookups to speed up the orders page"

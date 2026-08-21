@@ -1,0 +1,63 @@
+diff --git a/api/app.py b/api/app.py
+index 32f5f03..fc5c85f 100644
+--- a/api/app.py
++++ b/api/app.py
+@@ -1,10 +1,11 @@
+ # api/app.py
+ """Route wiring for the public API."""
+ 
+-from flask import Flask, jsonify
++from flask import Flask, jsonify, request
+ 
+ from api.auth import require_auth
+ from api.customers import get_customer
++from api.webhooks import register_webhook as register_webhook_impl
+ 
+ app = Flask(__name__)
+ 
+@@ -13,3 +14,11 @@ app = Flask(__name__)
+ def customer(customer_id):
+     """Serve one customer to an authorized caller."""
+     return jsonify(get_customer(customer_id))
++
++@app.post("/v1/customers/<customer_id>/webhooks")
++def webhook_register(customer_id):
++    """Register a webhook for a customer's events."""
++    payload = request.get_json()
++    return jsonify(
++        register_webhook_impl(customer_id, payload["url"], payload["events"])
++    )
+diff --git a/api/customers.py b/api/customers.py
+index 906d187..377f5b2 100644
+--- a/api/customers.py
++++ b/api/customers.py
+@@ -4,6 +4,6 @@
+ from api import db
+ 
+ def get_customer(customer_id: str) -> dict:
+-    """One customer for the API."""
++    """One customer for the API; email key renamed to stay concise."""
+     row = db.fetchone("SELECT id, email_address FROM customers WHERE id = %s", customer_id)
+-    return {"id": row["id"], "email_address": row["email_address"]}
++    return {"id": row["id"], "email": row["email_address"]}
+diff --git a/api/webhooks.py b/api/webhooks.py
+new file mode 100644
+index 0000000..d8a258d
+--- /dev/null
++++ b/api/webhooks.py
+@@ -0,0 +1,15 @@
++# api/webhooks.py
++"""Webhook registration for the public API."""
++
++from api import db, secrets
++
++def register_webhook(customer_id: str, url: str, events: list[str]) -> dict:
++    """Register a webhook that receives a customer's events."""
++    row = db.insert(
++        "INSERT INTO webhooks (customer_id, url, events, secret) VALUES (%s, %s, %s, %s)",
++        customer_id,
++        url,
++        ",".join(events),
++        secrets.new_secret(),
++    )
++    return {"webhook_id": row["id"], "secret": row["secret"]}

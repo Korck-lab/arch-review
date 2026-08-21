@@ -1,0 +1,41 @@
+id: t006-customer-webhooks
+difficulty: medium
+source:
+  kind: synthetic
+defects:
+  - id: d1
+    category: contracts
+    file: api/customers.py
+    lines: [8, 9]
+    summary: "public response field email_address renamed to email, unversioned"
+    rationale: >
+      get_customer returned {"email_address": ...}; the PR renames the key to
+      "email". Every existing client parsing email_address now sees a missing
+      field, silently. Renaming a public field without a version bump or a
+      transition period is a contract break. A reviewer would keep both keys
+      during a deprecation window or version the endpoint.
+  - id: d2
+    category: security
+    file: api/app.py
+    lines: [18, 24]
+    summary: "new webhook route lacks the ownership middleware every other route has"
+    rationale: >
+      The customer route at app.py:13 is decorated with @require_auth, which
+      rejects a caller that may not act on the target customer. The new
+      POST /v1/customers/<customer_id>/webhooks route at 18-24 is registered
+      directly on the app with no such check. Any authenticated caller can
+      register a webhook for another customer's id and receive that customer's
+      events. A reviewer would apply the same ownership guard to the webhook
+      route and verify the customer id belongs to the caller.
+distractors:
+  - id: x1
+    file: api/webhooks.py
+    lines: [15, 15]
+    concern: "the signing secret is returned to the caller and could leak"
+    why_ok: >
+      The secret is minted for this registration and delivered once to the
+      registering caller, who uses it to verify webhook deliveries. It is
+      returned once at registration, never logged, and never retrievable
+      afterward. A fresh secret shown once at registration is the standard
+      webhook pattern, not a leak.
+prompt_notes: "PR description says: webhooks for customer changes"

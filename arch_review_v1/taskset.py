@@ -39,6 +39,7 @@ class ReviewData(vf.TaskData):
     difficulty: str
     source: dict
     prompt_notes: str
+    task_id: str  # the gold id, e.g. t001-payment-race; part of the verdict key
     gold_version: str  # content hash of the gold; part of the verdict key
 
 
@@ -112,6 +113,7 @@ class ArchReviewTaskset(vf.Taskset[ReviewTask, ArchReviewTasksetConfig]):
             difficulty=gold["difficulty"],
             source=gold["source"],
             prompt_notes=gold["prompt_notes"],
+            task_id=gold["id"],
             gold_version=gold_version(gold),
         )
         return ReviewTask(data, self.config.task)
