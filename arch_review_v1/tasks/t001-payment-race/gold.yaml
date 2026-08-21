@@ -1,0 +1,38 @@
+id: t001-payment-race
+difficulty: medium
+source:
+  kind: synthetic
+defects:
+  - id: d1
+    category: concurrency
+    file: billing/charge.py
+    lines: [25, 27]
+    summary: "check-then-act between balance read and debit without a lock; double charge under race"
+    rationale: >
+      checkout() reads the balance with get_balance() and later _do_charge()
+      debits the account in a separate call, with no row lock or
+      compare-and-set between them. Two concurrent checkout requests both pass
+      the balance check and both debit, charging the customer twice. A senior
+      reviewer would ask for SELECT ... FOR UPDATE or an atomic conditional
+      UPDATE guarded on the balance.
+  - id: d2
+    category: operability
+    file: billing/charge.py
+    lines: [38, 39]
+    summary: "charge-success metric removed from the checkout critical path"
+    rationale: >
+      The diff deletes the emit of billing.charge.success while claiming a
+      performance refactor. On-call loses the primary signal for silent payment
+      failures; the dashboards and the alert on its rate go blind with no
+      replacement metric.
+distractors:
+  - id: x1
+    file: billing/retry.py
+    lines: [13, 27]
+    concern: "duplicate charge on retry"
+    why_ok: >
+      with_retry reuses the same idempotency_key (the order id) on every
+      attempt, and the gateway deduplicates identical-key replays, so a retried
+      charge cannot double-bill the customer. The loop looks like it could
+      double-charge but is safe.
+prompt_notes: "PR description says: improves checkout performance"

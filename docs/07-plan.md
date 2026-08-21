@@ -6,9 +6,9 @@
 - [ ] Complete 30 tasks (balance category × difficulty)
 
 ## Phase 2 — Environment (~2-3h with scaffold)
-- [ ] `uv run init arch-review-v1`, implement ReviewData/ReviewTask/Taskset
-- [ ] Judge with rubric for matching; recall + precision rewards
-- [ ] `uv run eval` smoke test with 3 tasks
+- [x] Scaffold and implement ReviewData/ReviewTask/Taskset (package `arch_review_v1`, 48 tests green)
+- [x] Two judges with rubrics; one F1 reward with inline `record_metrics`
+- [ ] `uv run eval` smoke test with 3 tasks (needs an inference API key)
 
 ## Phase 3 — Results (~2h + API cost)
 - [ ] Full eval on 2–3 models (1 strong, 1 medium, 1 cheap)
