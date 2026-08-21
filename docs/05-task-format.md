@@ -12,7 +12,7 @@ tasks/
 ```yaml
 id: t001-payment-race
 difficulty: medium          # easy | medium | hard
-source: synthetic           # or URL + license if derived from OSS
+source: { kind: synthetic }  # kind: synthetic | oss; oss also needs url, license, attribution
 defects:
   - id: d1
     category: concurrency
@@ -22,7 +22,10 @@ defects:
     rationale: >
       Hand-written: why it is a bug, concrete failure scenario, how a senior reviewer would phrase it.
 distractors:
-  - file: billing/retry.py
+  - id: x1
+    file: billing/retry.py
+    lines: [13, 27]
+    concern: "duplicate charge on retry"
     why_ok: "retry has an idempotency-key; it looks like duplication but it is not"
 prompt_notes: "PR says 'improves checkout performance'"
 ```

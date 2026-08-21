@@ -49,11 +49,11 @@ class ReviewTask(vf.Task[ReviewData, vf.State, ArchReviewTaskConfig]):
         judge_cfg = self.config.judge
 
         review = (trace.last_reply or "").strip()
-        if not review:
-            # empty or refused review: no judge calls, score 0 naturally (issue #3).
-            claims: list[Claim] = []
-            verdicts: list[Verdict] = []
-        else:
+        # Empty or refused review, or an extraction with no claims: no matcher
+        # call; score 0 naturally, flagged by claims = 0 (issue #3).
+        claims: list[Claim] = []
+        verdicts: list[Verdict] = []
+        if review:
             extractor = ClaimExtractorJudge(judge_cfg, data.file_list)
             extractor.review = review
             extraction = await extractor.evaluate(
@@ -62,26 +62,16 @@ class ReviewTask(vf.Task[ReviewData, vf.State, ArchReviewTaskConfig]):
                 files="\n".join(data.file_list),
             )
             claims = list(extraction.parsed.claims) if extraction.parsed is not None else []
-
-            matcher = MatcherJudge(
-                judge_cfg, data.seeded_defects, data.distractors, claims
-            )
-            result = await matcher.evaluate(
-                trace=trace,
-                claims=json.dumps([c.model_dump() for c in claims]),
-                gold=json.dumps(_gold_view(data)),
-            )
-            verdicts = list(result.parsed.verdicts) if result.parsed is not None else []
-
-        matcher = MatcherJudge(
-            judge_cfg, data.seeded_defects, data.distractors, claims
-        )
-        result = await matcher.evaluate(
-            trace=trace,
-            claims=json.dumps([c.model_dump() for c in claims]),
-            gold=json.dumps(_gold_view(data)),
-        )
-        verdicts = list(result.parsed.verdicts) if result.parsed is not None else []
+            if claims:
+                matcher = MatcherJudge(
+                    judge_cfg, data.seeded_defects, data.distractors, claims
+                )
+                result = await matcher.evaluate(
+                    trace=trace,
+                    claims=json.dumps([c.model_dump() for c in claims]),
+                    gold=json.dumps(_gold_view(data)),
+                )
+                verdicts = list(result.parsed.verdicts) if result.parsed is not None else []
 
         score = score_review(data.seeded_defects, claims, verdicts)
         trace.record_metrics(score.metrics)
