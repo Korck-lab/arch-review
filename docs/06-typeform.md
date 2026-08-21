@@ -1,10 +1,10 @@
-# Typeform do bounty (https://form.typeform.com/to/jLfT7v7o)
+# Bounty typeform (https://form.typeform.com/to/jLfT7v7o)
 
-Campos reais (lidos 20/ago/2026):
+Real fields (read 20/Aug/2026):
 1. **Your E-Mail** → rafael.aguilher@gmail.com
-2. **Exemplos de experiência** (open-access bounties / environments no Hub / projetos LLM) → link deste repo + link no Hub + 2–3 frases: autoria da taxonomia, metodologia de seeding, scores reproduzíveis
-3. **Quais bounties Application-Only quer** → "SWE-Swiss (Full Pipeline)" (planos B: BFCL-v4, AppWorld, Xbench-DeepSearch)
-4. **Profiles/Links** → GitHub Korck-lab (CONFIRMAR), LinkedIn rafael-costa-tech, HuggingFace se houver
-5. **Campo livre** → 1 parágrafo: 30 anos SWE/CTO, por que SWE-Swiss (domínio de issue-resolution + infra de eval)
+2. **Experience examples** (open-access bounties / environments on the Hub / LLM projects) → link to this repo + link on the Hub + 2–3 sentences: taxonomy authorship, seeding methodology, reproducible scores
+3. **Which Application-Only bounties do you want** → "SWE-Swiss (Full Pipeline)" (plan B: BFCL-v4, AppWorld, Xbench-DeepSearch)
+4. **Profiles/Links** → GitHub Korck-lab (CONFIRM), LinkedIn rafael-costa-tech, HuggingFace if any
+5. **Free field** → 1 paragraph: 30 years SWE/CTO, why SWE-Swiss (issue-resolution domain + eval infra)
 
-Regra do processo combinada: o envio final é decisão/clique do Rafael — preparar tudo, revisar junto, enviar com ok explícito.
+Agreed process rule: the final submission is Rafael's decision/click — prepare everything, review together, submit with explicit ok.

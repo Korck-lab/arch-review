@@ -1,27 +1,27 @@
-# Plano de execução (estimativa 1–2 dias úteis)
+# Execution plan (estimate 1–2 business days)
 
-## Fase 1 — Dataset (o grosso do valor; ~meio dia+)
-- [ ] Escrever 6 tasks piloto (1 por categoria principal), com gold.yaml completo
-- [ ] Validar formato rodando 1 modelo à mão (sem verifiers ainda)
-- [ ] Completar 30 tasks (balancear categoria × dificuldade)
+## Phase 1 — Dataset (the bulk of the value; ~half a day+)
+- [ ] Write 6 pilot tasks (1 per main category), with complete gold.yaml
+- [ ] Validate format by running 1 model by hand (no verifiers yet)
+- [ ] Complete 30 tasks (balance category × difficulty)
 
-## Fase 2 — Environment (~2-3h com scaffold)
-- [ ] `uv run init arch-review-v1`, implementar ReviewData/ReviewTask/Taskset
-- [ ] Judge com rubrica p/ matching; rewards recall + precision
-- [ ] `uv run eval` smoke test com 3 tasks
+## Phase 2 — Environment (~2-3h with scaffold)
+- [ ] `uv run init arch-review-v1`, implement ReviewData/ReviewTask/Taskset
+- [ ] Judge with rubric for matching; recall + precision rewards
+- [ ] `uv run eval` smoke test with 3 tasks
 
-## Fase 3 — Resultados (~2h + custo API)
-- [ ] Eval completo em 2–3 modelos (1 forte, 1 médio, 1 barato)
-- [ ] README final em inglês: metodologia, tabela de scores, análise por categoria
+## Phase 3 — Results (~2h + API cost)
+- [ ] Full eval on 2–3 models (1 strong, 1 medium, 1 cheap)
+- [ ] Final README in English: methodology, score table, per-category analysis
 
-## Fase 4 — Publicar
-- [ ] Repo público no GitHub (conta a confirmar)
+## Phase 4 — Publish
+- [ ] Public repo on GitHub (account to confirm)
 - [ ] `prime login` (Rafael) + `prime env push`
 
-## Fase 5 — Aplicar
-- [ ] Preencher typeform (docs/06), revisão do Rafael, envio com ok dele
+## Phase 5 — Apply
+- [ ] Fill the typeform (docs/06), Rafael's review, submit with his ok
 
-## Riscos
-- SWE-Swiss ser atribuído a outro durante a construção → planos B na mesma credencial
-- Judge instável no matching → fixar rubrica + exemplos few-shot no prompt do judge; medir concordância em 5 tasks à mão
-- Datas na planilha indicam ciclo de revisão lento deles — aplicar assim que publicar, não esperar polish infinito
+## Risks
+- SWE-Swiss assigned to someone else during the build → plan Bs on the same credential
+- Unstable judge on matching → fix rubric + few-shot examples in the judge prompt; measure agreement on 5 tasks by hand
+- Spreadsheet dates indicate their slow review cycle — apply right after publishing, do not wait for infinite polish

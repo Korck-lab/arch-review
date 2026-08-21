@@ -1,19 +1,19 @@
-# Contexto: bounty Prime Intellect
+# Context: Prime Intellect bounty
 
-## O alvo
-- **SWE-Swiss (Full Pipeline)** — $3.500, status **Open** (planilha lida 20/ago/2026).
-- Fonte do benchmark: https://github.com/zhenyuhe00/SWE-Swiss (ByteDance Seed).
-  Receita de issue-resolution: 3 habilidades (Localization, Repair, Unit-Test Generation), SFT multi-task + RL 2 estágios, modelo 32B, 60,2% no SWE-bench Verified. Pesos e datasets no HuggingFace (SWE-Swiss/models, SWE-Swiss/datasets).
-- Exigência dos flagship benchmarks: implementação **fiel**, reproduzindo scores publicados na suíte completa; créditos de inferência fornecidos por eles.
-- Atribuição: 1 pessoa por bounty, via candidatura (não é PR direto).
+## The target
+- **SWE-Swiss (Full Pipeline)** — $3,500, status **Open** (spreadsheet read 20/Aug/2026).
+- Benchmark source: https://github.com/zhenyuhe00/SWE-Swiss (ByteDance Seed).
+  Issue-resolution recipe: 3 skills (Localization, Repair, Unit-Test Generation), multi-task SFT + 2-stage RL, 32B model, 60.2% on SWE-bench Verified. Weights and datasets on HuggingFace (SWE-Swiss/models, SWE-Swiss/datasets).
+- Flagship benchmark requirement: **faithful** implementation, reproducing published scores on the full suite; inference credits provided by them.
+- Attribution: 1 person per bounty, via application (not a direct PR).
 
-## O funil
-1. Publicar um environment próprio no Hub (**este projeto**) — qualifica como "novel environments shared on the Environments Hub".
-2. Aplicar no typeform: https://form.typeform.com/to/jLfT7v7o (campos em `06-typeform.md`).
-3. Se SWE-Swiss for atribuído a outro enquanto isso: planos B Open na mesma planilha — BFCL-v4 $1.500, AppWorld $1.000, Xbench-DeepSearch $600 (mesma credencial serve).
+## The funnel
+1. Publish your own environment on the Hub (**this project**) — qualifies as "novel environments shared on the Environments Hub".
+2. Apply via the typeform: https://form.typeform.com/to/jLfT7v7o (fields in `06-typeform.md`).
+3. If SWE-Swiss goes to someone else meanwhile: Open plan Bs on the same spreadsheet — BFCL-v4 $1,500, AppWorld $1,000, Xbench-DeepSearch $600 (the same credential qualifies).
 
-## Referências
-- Planilha master: https://docs.google.com/spreadsheets/d/13UDfRDjgIZXsMI2s9-Lmn8KSMMsgk2_zsfju6cx_pNU
-  - gid 650541192 = Application-Only (a que vale); gid 1235730607 = Open-Access (tudo fechado em 20/ago); gid 1178381510 = LEGACY (status desatualizado, ignorar)
-- Aviso textual da planilha: "Projects which smell 'fully vibecoded' will not be considered."
+## References
+- Master spreadsheet: https://docs.google.com/spreadsheets/d/13UDfRDjgIZXsMI2s9-Lmn8KSMMsgk2_zsfju6cx_pNU
+  - gid 650541192 = Application-Only (the one that counts); gid 1235730607 = Open-Access (all closed on 20/Aug); gid 1178381510 = LEGACY (stale status, ignore)
+- Spreadsheet notice: "Projects which smell 'fully vibecoded' will not be considered."
 - Hub: https://app.primeintellect.ai/dashboard/environments

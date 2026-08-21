@@ -1,34 +1,34 @@
-# Formato de uma task
+# Task format
 
 ```
 tasks/
   t001-payment-race/
-    diff.patch          # o diff a revisar (50–300 linhas, sintético ou OSS c/ licença citada)
-    context.md          # descrição do sistema fingido (2-5 parágrafos) + o que o PR diz que faz
-    gold.yaml           # gabarito
+    diff.patch          # the diff to review (50–300 lines, synthetic or OSS with cited license)
+    context.md          # description of the fake system (2-5 paragraphs) + what the PR says it does
+    gold.yaml           # gold answer
 ```
 
 ## gold.yaml
 ```yaml
 id: t001-payment-race
 difficulty: medium          # easy | medium | hard
-source: synthetic           # ou URL + licença se derivado de OSS
+source: synthetic           # or URL + license if derived from OSS
 defects:
   - id: d1
-    category: concorrencia
+    category: concurrency
     file: billing/charge.py
     lines: [42, 58]
-    summary: "check-then-act entre saldo e débito sem lock; dupla cobrança sob corrida"
+    summary: "check-then-act between balance and debit without lock; double charge under race"
     rationale: >
-      Escrito à mão: por que é bug, cenário concreto de falha, como um reviewer sênior o formularia.
+      Hand-written: why it is a bug, concrete failure scenario, how a senior reviewer would phrase it.
 distractors:
   - file: billing/retry.py
-    why_ok: "retry tem idempotency-key; parece duplicação mas não é"
-prompt_notes: "PR diz 'melhora performance do checkout'"
+    why_ok: "retry has an idempotency-key; it looks like duplication but it is not"
+prompt_notes: "PR says 'improves checkout performance'"
 ```
 
 ## Scoring
-- **defect_recall**: judge compara cada issue do review do modelo com `defects[]` (match semântico: mesmo arquivo/tema/causa). recall = matched/total.
-- **precision**: issues do modelo sem correspondência em `defects[]` nem explicáveis pelos `distractors` contam como falso alarme. precision = matched/claimed.
-- Reward final sugerido: média harmônica (F1), + métricas por categoria para o README.
-- Judge: rubrica fixa, temperatura 0, modelo barato-forte (definir na Fase 3); prompt do judge versionado no repo.
+- **defect_recall**: judge compares each issue in the model's review with `defects[]` (semantic match: same file/theme/cause). recall = matched/total.
+- **precision**: model issues with no match in `defects[]` and not explained by the `distractors` count as false alarms. precision = matched/claimed.
+- Suggested final reward: harmonic mean (F1), plus per-category metrics for the README.
+- Judge: fixed rubric, temperature 0, cheap-strong model (to define in Phase 3); judge prompt versioned in the repo.
