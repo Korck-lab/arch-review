@@ -31,4 +31,4 @@ prompt_notes: "PR says 'improves checkout performance'"
 - **defect_recall**: judge compares each issue in the model's review with `defects[]` (semantic match: same file/theme/cause). recall = matched/total.
 - **precision**: model issues with no match in `defects[]` and not explained by the `distractors` count as false alarms. precision = matched/claimed.
 - Suggested final reward: harmonic mean (F1), plus per-category metrics for the README.
-- Judge: fixed rubric, temperature 0, cheap-strong model (to define in Phase 3); judge prompt versioned in the repo.
+- Judge: fixed rubric, temperature 0, `claude-sonnet-5`, overridable via `env.taskset.task.judge.model`; judge prompt versioned in `prompts/judge/*.v1.md`.

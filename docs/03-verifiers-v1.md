@@ -15,21 +15,14 @@ Repo: https://github.com/PrimeIntellect-ai/verifiers (docs/ + skills/ are the so
 import verifiers.v1 as vf
 
 class ReviewData(vf.TaskData):
-    seeded_defects: list[dict]   # [{id, category, file, line_hint, description}]
+    seeded_defects: list[dict]   # [{id, category, file, lines, summary, rationale}]
     diff: str
 
 class ReviewTask(vf.Task[ReviewData]):
     @vf.reward
     async def f1(self, trace: vf.Trace) -> float:
-        ...  # harmonic mean of recall and precision; matching via judge (extractor + matcher)
-
-    @vf.metric
-    async def recall(self, trace: vf.Trace) -> float:
-        ...  # seeded defects cited / seeded defects
-
-    @vf.metric
-    async def precision(self, trace: vf.Trace) -> float:
-        ...  # true issues / issues pointed out (distractor exempts)
+        ...  # extract claims (gold-blind) → match to gold → compute F1
+             # recall, precision, distractor_hits, recall_<category> via trace.record_metrics
 
 class ArchReviewTaskset(vf.Taskset[ReviewTask, vf.TasksetConfig]):
     def load(self) -> list[ReviewTask]:
@@ -38,10 +31,10 @@ class ArchReviewTaskset(vf.Taskset[ReviewTask, vf.TasksetConfig]):
 __all__ = ["ArchReviewTaskset"]
 ```
 
-> **Fixed (issue #8):** `verifiers.v1` sums named rewards — `Trace.reward = sum(r.value for r in self.rewards.values())`. Two `@vf.reward` (recall + precision) would sum recall+precision, not F1. Hence a single `f1` reward; recall, precision and per-category metrics become `@vf.metric`.
+> **Fixed (issues #8, #10):** `verifiers.v1` sums named rewards — `Trace.reward = sum(r.value for r in self.rewards.values())`. Two `@vf.reward` (recall + precision) would sum recall+precision, not F1. Hence a single `f1` reward. Recall, precision and per-category metrics are recorded inline via `trace.record_metrics` inside `f1` — `Task.score()` runs metrics before rewards, so `@vf.metric` hooks would force memoization.
 
 ## Before implementing, decide (checklist from the official skill)
 - Dataset fields; tool need (here: none — single-turn review);
 - control flow (single-turn; no simulated user);
-- rewards (one F1 as single reward; recall, precision and per-category as metrics);
+- rewards (one F1 as single reward; recall, precision and per-category recorded inline via `record_metrics`);
 - judge: yes — semantic matching between pointed-out issue and seeded defect (LLM judge with rubric).
