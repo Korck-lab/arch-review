@@ -6,12 +6,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `arch-review` is an eval environment for the Prime Intellect Environments Hub. The model reads a diff with seeded, documented defects and writes a code review. The score measures defect recall plus precision, penalizing false alarms.
 
-The project is the qualifying credential for the SWE-Swiss (Full Pipeline) bounty. See `README.md` for the phase checklist and `docs/01-contexto-bounty.md` for the bounty context.
+The project is the qualifying credential for the SWE-Swiss (Full Pipeline) bounty. See `README.md` for the phase checklist and `docs/01-bounty-context.md` for the bounty context.
 
 ## Current state
 
 Planning-only. No code exists yet; `docs/0*.md` hold the plan.
-Phase 2 introduces the Python verifier — `ReviewData`/`ReviewTask`/`Taskset`, judge, rewards — per `docs/03-verifiers-v1.md` and `docs/07-plano.md`.
+Phase 2 introduces the Python verifier — `ReviewData`/`ReviewTask`/`Taskset`, judge, rewards — per `docs/03-verifiers-v1.md` and `docs/07-plan.md`.
 
 ## Planned commands
 

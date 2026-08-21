@@ -2,10 +2,10 @@
 
 An environment for the **Prime Intellect Environments Hub**. The model receives a diff with seeded, documented defects. It writes a code review. The score measures defect recall plus precision. Precision penalizes false alarms.
 
-**Why this project exists:** this is the qualifying credential ("completed project") for the Prime Intellect bounty **SWE-Swiss (Full Pipeline) — $3,500**. See `docs/01-contexto-bounty.md`.
+**Why this project exists:** this is the qualifying credential ("completed project") for the Prime Intellect bounty **SWE-Swiss (Full Pipeline) — $3,500**. See `docs/01-bounty-context.md`.
 
 ## Status
-- [ ] Phase 1 — dataset: 30 curated tasks (diffs with seeded defects) — see `docs/04-taxonomia-defeitos.md` and `docs/05-formato-task.md`
+- [ ] Phase 1 — dataset: 30 curated tasks (diffs with seeded defects) — see `docs/04-defect-taxonomy.md` and `docs/05-task-format.md`
 - [ ] Phase 2 — verifiers v1 implementation (`Taskset` + rewards + judge) — see `docs/03-verifiers-v1.md`
 - [ ] Phase 3 — local eval on 2–3 models, README with scores
 - [ ] Phase 4 — `prime login` (Rafael) + `prime env push`
