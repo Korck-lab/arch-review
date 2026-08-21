@@ -52,7 +52,7 @@ class JudgeBudget:
 
     @property
     def exceeded(self) -> bool:
-        return self._spend > self.hard_stop
+        return self._spend >= self.hard_stop
 
     def record(self, cost: float) -> None:
         self._spend += cost

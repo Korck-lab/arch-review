@@ -31,10 +31,11 @@ def _dump(value):
 
 
 def gold_version(gold: dict) -> str:
-    """Hash of the gold content that defines a task's answer.
+    """Hash of the full gold content that defines a task's answer.
 
-    Only the gold fields participate — id, difficulty, source, defects,
-    distractors — so a doc or prompt edit does not bump the version.
+    Every gold field participates — id, difficulty, source, defects,
+    distractors, prompt_notes — so two golds differing anywhere cannot share a
+    verdict key.
     """
     view = {
         "id": gold["id"],
@@ -42,6 +43,7 @@ def gold_version(gold: dict) -> str:
         "source": gold["source"],
         "defects": [_dump(d) for d in gold["defects"]],
         "distractors": [_dump(x) for x in gold["distractors"]],
+        "prompt_notes": gold.get("prompt_notes", ""),
     }
     return content_hash(view)
 
@@ -66,7 +68,7 @@ def verdict_key(
     """Stable key for one verdict file: any component change flips it."""
     payload = {
         "task_id": task_id,
-        "review": review,
+        "review_hash": review_hash(review),
         "gold_version": gold_ver,
         "judge_prompt_version": judge_prompt_version,
         "judge_model": judge_model,

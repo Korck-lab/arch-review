@@ -8,8 +8,10 @@ The judge config is overridable from the CLI and TOML under
 from __future__ import annotations
 
 import verifiers.v1 as vf
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from verifiers.v1.types import SamplingConfig
+
+from arch_review_v1.budget import PRICE_T
 
 
 class ArchReviewJudgeConfig(vf.JudgeConfig):
@@ -37,7 +39,15 @@ class ArchReviewBudgetConfig(BaseModel):
 
     target: float = 10.0
     hard_stop: float = 12.0
-    prices: dict[str, tuple[float, float]] = {}
+    prices: dict[str, PRICE_T] = {}
+
+    @field_validator("prices")
+    @classmethod
+    def _prices_non_negative(cls, value: dict[str, PRICE_T]) -> dict[str, PRICE_T]:
+        for model, (input_per_1m, output_per_1m) in value.items():
+            if input_per_1m < 0 or output_per_1m < 0:
+                raise ValueError(f"rate card for {model!r} has a negative price")
+        return value
 
 
 class ArchReviewTasksetConfig(vf.TasksetConfig):

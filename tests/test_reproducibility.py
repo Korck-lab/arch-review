@@ -63,6 +63,13 @@ def test_gold_version_is_stable_and_sensitive():
     assert gold_version(gold) != v1
 
 
+def test_gold_version_includes_prompt_notes():
+    gold = _gold()
+    v1 = gold_version(gold)
+    gold["prompt_notes"] = "PR says it improves checkout performance"
+    assert gold_version(gold) != v1
+
+
 def test_prompt_version_extracts_the_stem():
     assert prompt_version("claim_extractor.v1.md") == "claim_extractor.v1"
     assert prompt_version("matcher.v1.md") == "matcher.v1"

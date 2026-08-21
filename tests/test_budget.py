@@ -39,6 +39,21 @@ def test_crossing_the_hard_stop_raises():
         budget.record(2.0)  # 13.0 > 12.0
 
 
+def test_exactly_at_the_hard_stop_raises():
+    budget = JudgeBudget(target=10.0, hard_stop=12.0)
+    with pytest.raises(BudgetExceeded):
+        budget.record(12.0)  # hard stop is the ceiling, inclusive
+
+
+def test_negative_rate_card_price_rejected_at_the_seam():
+    from pydantic import ValidationError
+
+    from arch_review_v1.config import ArchReviewBudgetConfig
+
+    with pytest.raises(ValidationError, match="negative"):
+        ArchReviewBudgetConfig(prices={"m-a": (-3.0, 15.0)})
+
+
 def test_remaining_is_floored_at_zero():
     budget = JudgeBudget(target=10.0, hard_stop=12.0)
     budget.record(11.0)  # past target, still under the hard stop
