@@ -32,7 +32,7 @@ No build, lint, or test exists yet. The intended toolchain is uv plus the Prime 
 
 If your work contradicts an ADR, say so explicitly instead of overriding it silently.
 
-**Open conflict — ADR-0001.** That ADR requires US English for all project output. The existing `README.md` and `docs/0*.md` are in Portuguese. Nothing was translated. Decide whether to translate them or to amend ADR-0001.
+**Resolved — ADR-0001.** All project output is US English. README, `docs/0*.md`, and filenames were translated (`ffdc113`).
 
 ## Agent skills
 
