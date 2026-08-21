@@ -8,6 +8,7 @@ The judge config is overridable from the CLI and TOML under
 from __future__ import annotations
 
 import verifiers.v1 as vf
+from pydantic import BaseModel
 from verifiers.v1.types import SamplingConfig
 
 
@@ -26,7 +27,21 @@ class ArchReviewTaskConfig(vf.TaskConfig):
     judge: ArchReviewJudgeConfig = ArchReviewJudgeConfig()
 
 
+class ArchReviewBudgetConfig(BaseModel):
+    """Run-level judge spend limits (issue #5): $10 target, $12 hard stop.
+
+    ``prices`` maps a judge model id to a (input, output) USD-per-1M-token rate
+    card. It is intentionally empty by default: the runner must supply the
+    provider's published prices, which the smoke eval calibrates.
+    """
+
+    target: float = 10.0
+    hard_stop: float = 12.0
+    prices: dict[str, tuple[float, float]] = {}
+
+
 class ArchReviewTasksetConfig(vf.TasksetConfig):
-    """Taskset config; the task block carries the judge."""
+    """Taskset config; the task block carries the judge, the budget limits spend."""
 
     task: ArchReviewTaskConfig = ArchReviewTaskConfig()
+    budget: ArchReviewBudgetConfig = ArchReviewBudgetConfig()

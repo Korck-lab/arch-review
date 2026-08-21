@@ -18,6 +18,7 @@ import yaml
 from arch_review_v1.config import ArchReviewTaskConfig, ArchReviewTasksetConfig
 from arch_review_v1.contract import validate_gold
 from arch_review_v1.judges import ClaimExtractorJudge, MatcherJudge
+from arch_review_v1.reproducibility import gold_version
 from arch_review_v1.schemas import Claim, Defect, Distractor, Verdict
 from arch_review_v1.scoring import score_review
 
@@ -38,6 +39,7 @@ class ReviewData(vf.TaskData):
     difficulty: str
     source: dict
     prompt_notes: str
+    gold_version: str  # content hash of the gold; part of the verdict key
 
 
 class ReviewTask(vf.Task[ReviewData, vf.State, ArchReviewTaskConfig]):
@@ -110,6 +112,7 @@ class ArchReviewTaskset(vf.Taskset[ReviewTask, ArchReviewTasksetConfig]):
             difficulty=gold["difficulty"],
             source=gold["source"],
             prompt_notes=gold["prompt_notes"],
+            gold_version=gold_version(gold),
         )
         return ReviewTask(data, self.config.task)
 
