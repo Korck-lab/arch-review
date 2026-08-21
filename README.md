@@ -1,28 +1,28 @@
-# arch-review — eval de code review arquitetural (verifiers environment)
+# arch-review — architectural code review eval (verifiers environment)
 
-Environment para o **Environments Hub da Prime Intellect**: o modelo recebe um diff/trecho de código com **defeitos semeados e documentados** e deve produzir um code review; a pontuação mede recall dos defeitos + precisão (penaliza falso alarme).
+An environment for the **Prime Intellect Environments Hub**. The model receives a diff with seeded, documented defects. It writes a code review. The score measures defect recall plus precision. Precision penalizes false alarms.
 
-**Por que este projeto existe:** é a credencial de qualificação ("completed project") para aplicar ao bounty **SWE-Swiss (Full Pipeline) — $3.500** da Prime Intellect. Ver `docs/01-contexto-bounty.md`.
+**Why this project exists:** this is the qualifying credential ("completed project") for the Prime Intellect bounty **SWE-Swiss (Full Pipeline) — $3,500**. See `docs/01-contexto-bounty.md`.
 
-## Estado
-- [ ] Fase 1 — dataset: 30 tarefas curadas (diffs com defeitos semeados) — ver `docs/04-taxonomia-defeitos.md` e `docs/05-formato-task.md`
-- [ ] Fase 2 — implementação verifiers v1 (`Taskset` + rewards + judge) — ver `docs/03-verifiers-v1.md`
-- [ ] Fase 3 — eval local em 2–3 modelos, README com scores
-- [ ] Fase 4 — `prime login` (Rafael) + `prime env push`
-- [ ] Fase 5 — typeform do bounty — ver `docs/06-typeform.md`
+## Status
+- [ ] Phase 1 — dataset: 30 curated tasks (diffs with seeded defects) — see `docs/04-taxonomia-defeitos.md` and `docs/05-formato-task.md`
+- [ ] Phase 2 — verifiers v1 implementation (`Taskset` + rewards + judge) — see `docs/03-verifiers-v1.md`
+- [ ] Phase 3 — local eval on 2–3 models, README with scores
+- [ ] Phase 4 — `prime login` (Rafael) + `prime env push`
+- [ ] Phase 5 — bounty typeform — see `docs/06-typeform.md`
 
-## Quick start (setup da máquina)
+## Quick start (machine setup)
 ```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh   # se uv não instalado
-uv tool install prime                              # CLI da Prime Intellect
-prime login                                        # conta do Rafael
-prime env init arch-review                         # esqueleto oficial
-# dentro do workspace verifiers:
-uv run init arch-review-v1                         # esqueleto do taskset v1
-uv run eval arch-review-v1                         # rodar o eval
+curl -LsSf https://astral.sh/uv/install.sh | sh   # if uv is not installed
+uv tool install prime                              # Prime Intellect CLI
+prime login                                        # Rafael's account
+prime env init arch-review                         # official skeleton
+# inside the verifiers workspace:
+uv run init arch-review-v1                         # v1 taskset skeleton
+uv run eval arch-review-v1                         # run the eval
 ```
 
-## Regras do repo
-- Público (é a vitrine). Inglês em código e README final.
-- Nada de PII: nenhum código de cliente real — defeitos semeados em código sintético ou OSS com licença permissiva (citar origem).
-- Curadoria manual visível: cada task com comentário de autoria explicando o defeito (o filtro deles descarta projeto "fully vibecoded").
+## Repo rules
+- Public (it is the showcase). English in code and final README.
+- No PII: no real client code — defects seeded into synthetic or permissively licensed OSS (cite the origin).
+- Manual curation visible: every task carries an authorship comment explaining its defect (their filter rejects "fully vibecoded" projects).
