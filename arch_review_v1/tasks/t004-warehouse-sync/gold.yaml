@@ -29,7 +29,7 @@ defects:
   - id: d3
     category: resilience
     file: warehouse/sync.py
-    lines: [26, 33]
+    lines: [28, 38]
     summary: "an unhandled hub error propagates out of run_forever and kills the scheduler"
     rationale: >
       _push calls urllib.request.urlopen with no try/except. A single hub 5xx,
@@ -51,7 +51,7 @@ distractors:
       limit, not a bug.
   - id: x2
     file: warehouse/sync.py
-    lines: [37, 45]
+    lines: [43, 47]
     concern: "_drain_jobs re-pushes the same deltas once per queued job"
     why_ok: >
       _drain_jobs calls sync_inventory() for every unprocessed job, so N queued

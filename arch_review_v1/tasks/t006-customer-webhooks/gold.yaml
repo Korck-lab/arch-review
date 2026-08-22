@@ -34,7 +34,9 @@ distractors:
     concern: "the signing secret is returned to the caller and could leak"
     why_ok: >
       The secret is minted for this registration and delivered once to the
-      registering caller, who uses it to verify webhook deliveries. It is
+      caller who registered it, who uses it to verify webhook deliveries. This
+      says only that returning a fresh secret once is the right shape; it does
+      not claim the caller was entitled to register for that customer. It is
       returned once at registration, never logged, and never retrievable
       afterward. A fresh secret shown once at registration is the standard
       webhook pattern, not a leak.

@@ -11,8 +11,10 @@ defects:
     rationale: >
       The old code resolved the customer name inside a single JOIN. The PR
       drops the JOIN and looks the name up once per order row at 24-30, so a
-      page with 50 orders issues 50 customer queries. A senior reviewer would
-      keep the JOIN or batch the customer ids into one IN (...) query.
+      page with 50 orders issues 50 customer queries. Every row on this page
+      shares one customer id, because the outer query filters on customer_id,
+      so the repeat is pure waste. A senior reviewer would keep the JOIN, or
+      resolve the name once before the loop and reuse it.
   - id: d2
     category: contracts
     file: shop/orders.py

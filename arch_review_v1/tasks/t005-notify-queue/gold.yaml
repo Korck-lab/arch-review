@@ -1,5 +1,5 @@
 id: t005-notify-queue
-difficulty: medium
+difficulty: hard
 source:
   kind: synthetic
 defects:
@@ -27,6 +27,19 @@ defects:
       hottest query in the system, so claim latency grows with the table. A
       reviewer would add an index on (kind, enqueued_at), partial on
       claimed_by IS NULL, which supports both the filter and the ORDER BY.
+  - id: d3
+    category: contracts
+    file: notify/queue.py
+    lines: [6, 6]
+    summary: "required kind parameter inserted mid-signature; no caller updated"
+    rationale: >
+      claim_batch(worker_id, limit) becomes claim_batch(worker_id, kind, limit).
+      The new parameter is required and sits in the middle, so an existing
+      caller writing claim_batch(worker, 50) now binds 50 to kind and raises
+      TypeError for the missing limit. A caller passing three values by
+      accident would bind them silently. The diff updates no caller. A reviewer
+      would append kind as a keyword argument with a default, or update every
+      call site in the same change.
 distractors:
   - id: x1
     file: notify/queue.py
@@ -36,6 +49,18 @@ distractors:
       The UPDATE is conditional — WHERE id = %s AND claimed_by IS NULL — and
       only rows whose UPDATE matched (rowcount > 0) are returned. If two
       workers SELECT the same email, the second UPDATE matches zero rows and
-      that worker drops it, so exactly one worker sends each email. The guarded
-      UPDATE plus the rowcount check is the safety.
+      that worker drops it, so exactly one worker claims each email. The
+      guarded UPDATE plus the rowcount check is the safety. This settles worker
+      contention only; it says nothing about how many times the claiming worker
+      then calls the provider.
+  - id: x2
+    file: notify/queue.py
+    lines: [22, 25]
+    concern: "the rowcount filter can return fewer rows than the requested limit"
+    why_ok: >
+      A row whose conditional UPDATE matched nothing is dropped from the
+      returned batch, so a contended pass hands the caller a short batch. That
+      row keeps claimed_by IS NULL, so the next pickup selects it again and
+      another worker sends it. A short batch costs one cycle of latency; no
+      email is dropped.
 prompt_notes: "PR description says: more robust delivery"
