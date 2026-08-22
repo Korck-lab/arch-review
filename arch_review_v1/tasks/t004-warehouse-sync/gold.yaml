@@ -1,5 +1,5 @@
 id: t004-warehouse-sync
-difficulty: medium
+difficulty: hard
 source:
   kind: synthetic
 defects:
@@ -26,6 +26,19 @@ defects:
       run_forever consumes the constant, but operators can no longer tune the
       interval without a code deploy, and the constant silently ignores any
       operator configuration. Config belongs outside the source tree.
+  - id: d3
+    category: resilience
+    file: warehouse/sync.py
+    lines: [26, 33]
+    summary: "an unhandled hub error propagates out of run_forever and kills the scheduler"
+    rationale: >
+      _push calls urllib.request.urlopen with no try/except. A single hub 5xx,
+      timeout, or DNS failure raises URLError. Nothing catches it in
+      sync_inventory, _drain_jobs, or run_forever, so the exception escapes the
+      while True loop and the scheduler process exits. Every later sync stops,
+      and the queued job rows are never marked processed. A reviewer would ask
+      for a per-delta try/except that logs and continues, so one bad delta
+      cannot take the whole job down.
 distractors:
   - id: x1
     file: warehouse/sync.py
@@ -36,4 +49,13 @@ distractors:
       path (request_sync) inserts one job row and returns immediately, so the
       sleep never runs inside a request. The sleep is a deliberate hub rate
       limit, not a bug.
+  - id: x2
+    file: warehouse/sync.py
+    lines: [37, 45]
+    concern: "_drain_jobs re-pushes the same deltas once per queued job"
+    why_ok: >
+      _drain_jobs calls sync_inventory() for every unprocessed job, so N queued
+      jobs push the same pending deltas N times. The hub is idempotent by delta
+      id, so a repeated push applies the delta once and the inventory stays
+      correct. The repetition wastes hub calls but cannot corrupt state.
 prompt_notes: "PR description says: decouple the sync job from the web app"
