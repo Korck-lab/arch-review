@@ -75,4 +75,13 @@ distractors:
       jobs push the same pending deltas N times. The hub is idempotent by delta
       id, so a repeated push applies the delta once and the inventory stays
       correct. The repetition wastes hub calls but cannot corrupt state.
+  - id: x3
+    file: warehouse/sync.py
+    lines: [27, 31]
+    concern: "_push posts JSON without an application/json Content-Type header"
+    why_ok: >
+      urllib defaults the header to application/x-www-form-urlencoded for a
+      bytes body, but the context states the hub parses the body directly as
+      JSON and does not validate Content-Type. The push succeeds; the header
+      mismatch is cosmetic.
 prompt_notes: "PR description says: decouple the sync job from the web app"
