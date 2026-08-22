@@ -11,8 +11,8 @@
 - [x] `uv run eval` smoke test with 3 tasks — runs via `tools/claude_proxy.py` + `claude -p` (no paid inference), 3/3 episodes scored, avg F1 0.50
 
 ## Phase 3 — Results (~2h + API cost)
-- [ ] Full eval on 2–3 models (1 strong, 1 medium, 1 cheap)
-- [ ] Final README in English: methodology, score table, per-category analysis
+- [~] Full eval on 2–3 models (1 strong, 1 medium, 1 cheap) — 1 model done (flash via claude -p), 6/6 episodes, mean F1 0.51
+- [x] Final README in English: methodology, score table, per-category analysis
 
 ## Phase 4 — Publish
 - [ ] Public repo on GitHub (account to confirm)
