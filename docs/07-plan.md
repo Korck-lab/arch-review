@@ -8,7 +8,7 @@
 ## Phase 2 — Environment (~2-3h with scaffold)
 - [x] Scaffold and implement ReviewData/ReviewTask/Taskset (package `arch_review_v1`, 48 tests green)
 - [x] Two judges with rubrics; one F1 reward with inline `record_metrics`
-- [ ] `uv run eval` smoke test with 3 tasks (needs an inference API key)
+- [x] `uv run eval` smoke test with 3 tasks — runs via `tools/claude_proxy.py` + `claude -p` (no paid inference), 3/3 episodes scored, avg F1 0.50
 
 ## Phase 3 — Results (~2h + API cost)
 - [ ] Full eval on 2–3 models (1 strong, 1 medium, 1 cheap)

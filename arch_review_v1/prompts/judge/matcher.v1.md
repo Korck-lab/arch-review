@@ -28,4 +28,6 @@ Matching rules:
 - Exactly one verdict per claim. Every claim gets a verdict.
 - Set unsure to true when the mapping is genuinely uncertain; those verdicts go to a human review queue.
 
-Return the schema object.
+Each verdict object uses exactly these keys: claim_id (the claim's id), kind ("matched" | "distractor" | "false_alarm"), defect_id (when matched), second_defect_id (optional second defect when matched), status ("full" | "partial"), distractor_file (when distractor), unsure (boolean).
+
+Return the schema object as raw JSON only. Do not wrap it in markdown code fences (no ```json). Do not add commentary before or after the JSON.

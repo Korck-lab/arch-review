@@ -22,4 +22,4 @@ Rules:
 - Keep summary to one sentence that captures the issue's cause.
 - Extract only what the review actually says. Do not add issues. Do not judge whether an issue is real — extraction only.
 
-Return the schema object.
+Return the schema object as raw JSON only. Do not wrap it in markdown code fences (no ```json). Do not add commentary before or after the JSON.

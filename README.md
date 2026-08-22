@@ -11,6 +11,18 @@ An environment for the **Prime Intellect Environments Hub**. The model receives 
 - [ ] Phase 4 — `prime login` (Rafael) + `prime env push`
 - [ ] Phase 5 — bounty typeform — see `docs/06-typeform.md`
 
+## Local run without paid inference (dev)
+
+Point the eval at `claude -p` via the bundled proxy; no API key or spend:
+
+```bash
+python tools/claude_proxy.py --port 8788 &      # Anthropic Messages -> claude -p
+CLAUDE_LOCAL_KEY=dummy uv run eval arch-review-v1 -n 3 \
+  @ <(printf '[client]\nbase_url = "http://127.0.0.1:8788"\napi_key_var = "CLAUDE_LOCAL_KEY"\n\n[env.agent.runtime]\ntype = "subprocess"\n\n[env.taskset.task.judge]\nbase_url = "http://127.0.0.1:8788"\napi_key_var = "CLAUDE_LOCAL_KEY"\n')
+```
+
+The judge and reviewer both run on the `claude` CLI's configured model. Use `subprocess` runtime only for local debugging.
+
 ## Quick start (machine setup)
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh   # if uv is not installed
