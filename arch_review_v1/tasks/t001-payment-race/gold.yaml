@@ -40,18 +40,23 @@ defects:
       no behavior change, and it reuses ValueError so callers cannot tell it
       from the amount check. A reviewer would not gate payment on the ledger
       balance, or would document the new rejection contract.
+  - id: d4
+    category: resilience
+    file: billing/charge.py
+    lines: [33, 39]
+    summary: "idempotency key minted per call and discarded; a checkout-level retry double-charges"
+    rationale: >
+      _do_charge mints order_id = uuid4().hex as the gateway idempotency key
+      and scopes it to the with_retry loop. The key never leaves the call:
+      CheckoutResult.order_id is the gateway's own charge id, so the key is
+      unrecoverable. If the caller retries checkout after a lost response —
+      the exact case idempotency exists to cover — the second call mints a
+      fresh key and the gateway bills the card twice. The loop's dedup protects
+      retries inside one call only. A reviewer would derive the key from a
+      stable order identifier the caller passes in, or return the key for
+      reuse.
 distractors:
   - id: x1
-    file: billing/retry.py
-    lines: [13, 27]
-    concern: "duplicate charge on retry"
-    why_ok: >
-      with_retry passes the same idempotency_key (the order id) on every
-      attempt, and the gateway deduplicates identical-key replays, so a retried
-      charge cannot double-bill the customer. The key is minted per checkout
-      call; deduplicating a caller-level retry of the whole checkout is outside
-      this diff, since no caller here retries checkout.
-  - id: x2
     file: billing/charge.py
     lines: [25, 25]
     concern: "the pre-check and retry backoff add latency to the checkout path"
@@ -62,7 +67,7 @@ distractors:
       before the card call, the slowest round trip, so the check makes the
       common failure case faster. The PR's latency claim concerns the success
       path, which gains one local read.
-  - id: x3
+  - id: x2
     file: billing/retry.py
     lines: [17, 27]
     concern: "with_retry returns None when attempts is zero, violating its -> T annotation"
