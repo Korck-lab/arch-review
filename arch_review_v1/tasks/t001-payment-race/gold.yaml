@@ -7,19 +7,23 @@ defects:
     category: contracts
     file: billing/charge.py
     lines: [25, 27]
-    summary: "new balance pre-check rejects checkouts the same code used to allow"
+    summary: "new balance pre-check is defective: it rejects valid card payments and is a non-atomic check-then-act"
     rationale: >
-      The context states checkout charges the card on file and debits the
-      internal balance ledger: the card is the funding source, the ledger only
-      records the debit. The pre-check now raises ValueError when the ledger
-      balance is below the amount, before the gateway is reached, so a customer
-      with a valid card and a low ledger balance is refused where the same call
-      used to succeed. That is a behavior change contradicting the PR's claim of
-      no behavior change, and it reuses ValueError so callers cannot tell it
-      from the amount check. A reviewer would not gate payment on the ledger
-      balance, or would document the new rejection contract. The gate is also
-      non-atomic, but that is a symptom of the same wrong-gate mechanism, not a
-      separate defect.
+      The pre-check is the PR's main change and a reviewer reads it twice: it
+      gates checkout on a balance that is not the funding source, and it does so
+      non-atomically. The context states checkout charges the card on file and
+      debits the internal balance ledger: the card is the funding source, the
+      ledger only records the debit. Raising ValueError when the ledger balance
+      is below the amount refuses a customer with a valid card and a low ledger
+      balance where the same call used to succeed — a behavior change
+      contradicting the PR's claim of no behavior change — and it reuses
+      ValueError, so callers cannot tell it from the amount check. Separately,
+      get_balance and the later debit are separate calls with no reservation, so
+      two concurrent checkouts can both pass the check and both debit: the
+      fast-fail guard is a check-then-act race. All three symptoms are one
+      mechanism, the balance pre-check. A reviewer would not gate payment on
+      the ledger balance, or would document the new rejection contract, and
+      would make any gate atomic with the debit.
   - id: d2
     category: operability
     file: billing/charge.py

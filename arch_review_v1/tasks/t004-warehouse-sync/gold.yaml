@@ -43,17 +43,19 @@ defects:
     category: contracts
     file: warehouse/sync.py
     lines: [66, 68]
-    summary: "the /sync endpoint queues but the drainer polls hourly, so an on-demand trigger runs up to an hour late"
+    summary: "the queue is the only path to sync and drains hourly: with no queued job nothing syncs, and a triggered job waits up to an hour"
     rationale: >
-      The PR claims operators can "trigger a sync on demand", and the endpoint
-      returns started=True immediately. But request_sync only inserts a
-      sync_jobs row; run_forever drains the queue once per SYNC_INTERVAL_SECONDS
-      (3600) sleep. A trigger issued right after a drain waits almost a full
-      hour before any sync runs. That contradicts the on-demand claim: the
-      endpoint starts nothing on demand, it only queues for the next hourly
-      poll. A reviewer would wake the drainer on insert (poll with a short
-      interval, or a notify channel), or drop the on-demand claim and document
-      the hourly cadence.
+      run_forever runs sync_inventory() only inside _drain_jobs, once per
+      queued job, then sleeps SYNC_INTERVAL_SECONDS (3600). Two consequences
+      follow. First, with an empty queue the drainer calls sync_inventory()
+      zero times, so new deltas sit unpushed until an operator queues a job:
+      the automatic interval syncing the old code performed is gone,
+      contradicting the PR's claim of no behavior change. Second, even a
+      triggered /sync job waits up to an hour: request_sync inserts a row and
+      returns started=True, but the drain runs on the next hourly poll, so an
+      on-demand trigger can be deferred almost a full hour. A reviewer would
+      keep the autonomous cadence, or wake the drainer on insert and document
+      the new trigger-only behavior.
 distractors:
   - id: x1
     file: warehouse/sync.py
