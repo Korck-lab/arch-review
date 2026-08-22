@@ -14,7 +14,7 @@ from pathlib import Path
 import verifiers.v1 as vf
 
 from arch_review_v1.config import ArchReviewJudgeConfig
-from arch_review_v1.contract import validate_extraction, validate_matching
+from arch_review_v1.contract import ContractError, validate_extraction, validate_matching
 from arch_review_v1.schemas import Claim, ClaimExtraction, Defect, Distractor, MatchResult
 
 _PROMPT_DIR = Path(__file__).parent / "prompts" / "judge"

@@ -13,21 +13,21 @@ An environment for the **Prime Intellect Environments Hub**. The model receives 
 
 ## Results
 
-Reviewer under test: a flash-tier model routed through the local `claude -p` proxy. One episode per task. F1 combines defect recall with precision; false alarms penalize precision.
+Reviewer under test: a flash-tier model routed through the local `claude -p` proxy. Three episodes per task, means reported. F1 combines defect recall with precision; false alarms penalize precision.
 
 | Task | F1 | Recall | Precision | Claims | False alarms |
 |---|---|---|---|---|---|
-| t001-payment-race | 0.57 | 1.00 | 0.40 | 6 | 3 |
-| t002-shop-orders | 0.57 | 1.00 | 0.40 | 7 | 3 |
-| t003-reports-export | 0.24 | 1.00 | 0.13 | 15 | 13 |
-| t004-warehouse-sync | 0.31 | 1.00 | 0.18 | 11 | 9 |
-| t005-notify-queue | 0.80 | 1.00 | 0.67 | 3 | 1 |
-| t006-customer-webhooks | 0.57 | 1.00 | 0.40 | 10 | 6 |
-| **Mean** | **0.51** | **1.00** | **0.36** | **8.7** | **5.8** |
+| t001-payment-race | 0.62 | 0.83 | 0.50 | 4.0 | 1.7 |
+| t002-shop-orders | 0.87 | 1.00 | 0.78 | 3.0 | 0.7 |
+| t003-reports-export | 0.71 | 1.00 | 0.56 | 3.7 | 1.7 |
+| t004-warehouse-sync | 0.66 | 1.00 | 0.50 | 5.0 | 2.3 |
+| t005-notify-queue | 1.00 | 1.00 | 1.00 | 2.7 | 0.0 |
+| t006-customer-webhooks | 0.82 | 1.00 | 0.72 | 3.0 | 1.0 |
+| **Mean** | **0.78** | **0.97** | **0.68** | **3.6** | **1.2** |
 
 **Method.** The model reads the diff plus task context and writes a free-form review. A gold-blind claim extractor turns the review into one claim per distinct issue; a matcher maps each claim to the seeded gold (defect, distractor, or false alarm). Recall credits each seeded defect once at its best match status; precision is the share of claims that are not false alarms; F1 is their harmonic mean. An empty review scores recall 0, precision 1.0, F1 0.
 
-**Reading.** The flash-tier reviewer finds every seeded defect (recall 1.00) but is noisy: verbose reviews raise many false alarms, which drag precision and F1 down. The eval discriminates — the clean run (t005, 3 claims) scores 0.80 while the noisiest (t003, 15 claims) scores 0.24. The score table separates task quality from reviewer noise.
+**Reading.** The reviewer is told to report only high-confidence, diff-supported defects and to consolidate symptoms of one root cause. That keeps it precise: a mean of 1.2 false alarms per task instead of unconstrained listing. Recall stays near perfect (0.97); the one miss is a concurrency defect a rollout judged too theoretical. The eval discriminates — the clean task (t005) scores 1.00, the two-defect race task (t001) the lowest.
 
 ## Local run without paid inference (dev)
 
