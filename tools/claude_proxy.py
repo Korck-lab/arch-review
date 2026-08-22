@@ -23,7 +23,15 @@ import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
 
+# `claudei` is a shell launcher that sets ANTHROPIC_BASE_URL to the DeepSeek
+# proxy and execs `claude`. We call the binary directly with that env, so the
+# model path is identical and stdout is free of the launcher's banner lines.
 CLAUDE_BIN = os.environ.get("CLAUDE_BIN", "claude")
+# Pinned model id passed to `claudei -p --model`. Must be one the
+# deepseek-in-claude proxy on :8016 registers; the display form
+# `deepseek-v4-flash(1M)` is not recognized, its registered id is
+# `claude-deepseek-v4-flash[1m]`.
+PROXY_MODEL = os.environ.get("CLAUDE_PROXY_MODEL", "claude-deepseek-v4-flash[1m]")
 _FENCE = re.compile(r"^\s*```(?:json)?\s*|\s*```\s*$", re.MULTILINE)
 
 
@@ -35,9 +43,9 @@ def strip_fences(text: str) -> str:
 
 
 def request_model(body: dict) -> str | None:
-    """The model for `claude -p`. Always None: the CLI uses its own default
-    (the user's configured model / proxy), which is the point of this shim."""
-    return None
+    """The model for `claudei -p --model`. Pinned: every call routes through
+    the one configured DeepSeek alias."""
+    return PROXY_MODEL
 
 
 def schema_snippet(body: dict) -> dict | None:
@@ -91,17 +99,33 @@ def build_prompt(body: dict) -> str:
     return "\n\n".join(parts)
 
 
+# The deepseek-in-claude proxy. The `claudei` launcher points `claude` at it
+# with ANTHROPIC_BASE_URL and a gateway-discovery flag; we replicate exactly
+# that wiring instead of invoking claudei.sh, whose stdout banners would land
+# in the completion text.
+DEEPSEEK_BASE_URL = os.environ.get("DEEPSEEK_BASE_URL", "http://localhost:8016")
+
+
 def run_claude(prompt: str, model: str | None, timeout: int = 300) -> tuple[str, str]:
     """One `claude -p` call -> (stdout, stderr). Raises on nonzero exit."""
     argv = [CLAUDE_BIN, "-p", "--output-format", "text", "--dangerously-skip-permissions"]
     if model:
-        argv += ["-m", model]
+        argv += ["--model", model]
+    env = os.environ.copy()
+    env["ANTHROPIC_BASE_URL"] = DEEPSEEK_BASE_URL
+    env["CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY"] = "1"
+    # The CLI auto-generates a session title with the configured default model.
+    # A gateway model alias makes that call hard-fail and exits `claude -p`
+    # with code 1 before any output. Title generation is nonessential traffic;
+    # disable it so the model is only used for the actual completion.
+    env["CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC"] = "1"
     proc = subprocess.run(
         argv,
         input=prompt,
         capture_output=True,
         text=True,
         timeout=timeout,
+        env=env,
     )
     if proc.returncode != 0:
         raise RuntimeError(f"claude -p failed ({proc.returncode}): {proc.stderr.strip()[-800:]}")
