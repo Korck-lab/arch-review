@@ -1,0 +1,22 @@
+id: t005-notify-queue-d3
+difficulty: easy
+source:
+  kind: synthetic
+defects:
+- id: d1
+  category: contracts
+  file: notify/queue.py
+  lines:
+  - 4
+  - 5
+  summary: required kind parameter inserted mid-signature; no caller updated
+  rationale: 'claim_batch(worker_id, limit) becomes claim_batch(worker_id, kind, limit). The
+    new parameter is required and sits in the middle, so an existing caller writing claim_batch(worker,
+    50) now binds 50 to kind and raises TypeError for the missing limit. A caller passing
+    three values by accident would bind them silently. The diff updates no caller. A reviewer
+    would append kind as a keyword argument with a default, or update every call site in the
+    same change.
+
+    '
+distractors: []
+prompt_notes: 'PR description says: more robust delivery'

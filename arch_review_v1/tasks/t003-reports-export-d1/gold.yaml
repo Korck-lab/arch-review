@@ -1,0 +1,21 @@
+id: t003-reports-export-d1
+difficulty: easy
+source:
+  kind: synthetic
+defects:
+- id: d1
+  category: traversal
+  file: reports/export.py
+  lines:
+  - 1
+  - 16
+  summary: 'path traversal: caller-controlled filename joined onto EXPORT_DIR'
+  rationale: 'export_report joins the caller-supplied user and filename straight onto EXPORT_DIR
+    and creates the parent directory. A filename of "../../../../etc/cron.d/x" or a user of
+    ".." escapes the export root and writes or creates directories outside /srv/reports/exports.
+    A senior reviewer would resolve the target and assert it stays inside EXPORT_DIR, and
+    reject names containing path separators or leading dots.
+
+    '
+distractors: []
+prompt_notes: 'PR description says: self-service CSV export'

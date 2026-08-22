@@ -1,0 +1,21 @@
+id: t004-warehouse-sync-d1
+difficulty: easy
+source:
+  kind: synthetic
+defects:
+- id: d1
+  category: architecture
+  file: warehouse/app.py
+  lines:
+  - 18
+  - 23
+  summary: new import closes a circular dependency between app and sync
+  rationale: 'The PR adds from warehouse.sync import request_sync to app.py. sync.py already
+    does from warehouse.app import get_db. Importing app now loads sync, which loads app again:
+    a cycle. At runtime this surfaces as partially-initialized modules, import-order breakage,
+    or None attributes on not-yet-set module state. A reviewer would move get_db into warehouse.store
+    (or a shared module) so sync never imports app.
+
+    '
+distractors: []
+prompt_notes: 'PR description says: decouple the sync job from the web app'

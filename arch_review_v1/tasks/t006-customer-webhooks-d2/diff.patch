@@ -1,0 +1,7 @@
+diff --git a/api/app.py b/api/app.py
+--- a/api/app.py
++++ b/api/app.py
+@@ -14,0 +18,3 @@
++@app.post("/v1/customers/<customer_id>/webhooks")
++def webhook_register(customer_id):
++    """Register a webhook for a customer's events."""

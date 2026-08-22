@@ -1,0 +1,6 @@
+mode: decomposed
+parent: t001-payment-race
+parent_defect: d1
+status: clean
+generator: arch_review_v1.taskgen
+generator_version: 1.0.0

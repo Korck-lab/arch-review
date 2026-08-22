@@ -1,0 +1,20 @@
+id: t004-warehouse-sync-d2
+difficulty: easy
+source:
+  kind: synthetic
+defects:
+- id: d1
+  category: operability
+  file: warehouse/sync.py
+  lines:
+  - 19
+  - 19
+  summary: sync interval pinned in code; the environment override is gone
+  rationale: 'The job used to read SYNC_INTERVAL_SECONDS from the environment. The PR hardcodes
+    SYNC_INTERVAL_SECONDS = 3600 and drops the env read. run_forever consumes the constant,
+    but operators can no longer tune the interval without a code deploy, and the constant
+    silently ignores any operator configuration. Config belongs outside the source tree.
+
+    '
+distractors: []
+prompt_notes: 'PR description says: decouple the sync job from the web app'

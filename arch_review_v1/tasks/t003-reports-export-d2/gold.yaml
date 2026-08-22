@@ -1,0 +1,24 @@
+id: t003-reports-export-d2
+difficulty: easy
+source:
+  kind: synthetic
+defects:
+- id: d1
+  category: resilience
+  file: reports/storage.py
+  lines:
+  - 4
+  - 31
+  summary: 'blob fetch''s retry misses the transient failures it claims to cover: the timeout
+    is gone and mid-read drops are not caught'
+  rationale: "The PR claims the read is now \"retried for transient network errors\", but\
+    \ two transient cases defeat the new retry. _read calls urlopen(url) with no timeout \u2014\
+    \ the previous timeout=10 is gone \u2014 so a hung blob service blocks the worker forever\
+    \ and the TimeoutError retry branch is dead code. And the retry catches only URLError\
+    \ and TimeoutError: a connection that drops mid-body raises http.client.IncompleteRead\
+    \ (or RemoteDisconnected), which neither catch covers, so it escapes on the first attempt.\
+    \ Both symptoms are one mechanism: the new retry wrapper does not cover the transient\
+    \ cases it claims. A reviewer would restore the bounded timeout and catch the read-time\
+    \ failures urlopen can raise.\n"
+distractors: []
+prompt_notes: 'PR description says: self-service CSV export'

@@ -1,0 +1,12 @@
+diff --git a/api/app.py b/api/app.py
+--- a/api/app.py
++++ b/api/app.py
+@@ -4,1 +4,2 @@
++from flask import Flask, jsonify, request
++from api.webhooks import register_webhook as register_webhook_impl
+-from flask import Flask, jsonify
+@@ -14,0 +21,4 @@
++    payload = request.get_json()
++    return jsonify(
++        register_webhook_impl(customer_id, payload["url"], payload["events"])
++    )

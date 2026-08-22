@@ -1,0 +1,12 @@
+diff --git a/api/customers.py b/api/customers.py
+--- a/api/customers.py
++++ b/api/customers.py
+@@ -4,6 +4,6 @@
+ from api import db
+ 
+ def get_customer(customer_id: str) -> dict:
+-    """One customer for the API."""
++    """One customer for the API; email key renamed to stay concise."""
+     row = db.fetchone("SELECT id, email_address FROM customers WHERE id = %s", customer_id)
+-    return {"id": row["id"], "email_address": row["email_address"]}
++    return {"id": row["id"], "email": row["email_address"]}

@@ -1,0 +1,9 @@
+diff --git a/notify/queue.py b/notify/queue.py
+--- a/notify/queue.py
++++ b/notify/queue.py
+@@ -4,3 +4,2 @@
+ from notify import db
+ 
+-def claim_batch(worker_id: str, limit: int) -> list[dict]:
+@@ -4,0 +6,1 @@
++def claim_batch(worker_id: str, kind: str, limit: int) -> list[dict]:

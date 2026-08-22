@@ -1,0 +1,20 @@
+id: t006-customer-webhooks-d1
+difficulty: easy
+source:
+  kind: synthetic
+defects:
+- id: d1
+  category: contracts
+  file: api/customers.py
+  lines:
+  - 7
+  - 9
+  summary: public response field email_address renamed to email, unversioned
+  rationale: 'get_customer returned {"email_address": ...}; the PR renames the key to "email".
+    Every existing client parsing email_address now sees a missing field, silently. Renaming
+    a public field without a version bump or a transition period is a contract break. A reviewer
+    would keep both keys during a deprecation window or version the endpoint.
+
+    '
+distractors: []
+prompt_notes: 'PR description says: webhooks for customer changes'

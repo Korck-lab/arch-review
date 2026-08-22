@@ -1,0 +1,24 @@
+id: t006-customer-webhooks-d3
+difficulty: easy
+source:
+  kind: synthetic
+defects:
+- id: d1
+  category: resilience
+  file: api/app.py
+  lines:
+  - 21
+  - 24
+  summary: webhook_register indexes the request body without validating it, so malformed input
+    crashes the route with a 500
+  rationale: 'payload = request.get_json() returns None when the request has no JSON body
+    or a non-JSON content type; payload["url"] then raises TypeError. A JSON body missing
+    the "url" or "events" key raises KeyError, and a non-list "events" value makes ",".join
+    iterate its characters. None of these are caught, so every malformed request surfaces
+    as an unhandled 500 instead of a 4xx. The absence of validation is established by the
+    diff itself, not speculated. A reviewer would guard the body, check the keys and their
+    types, and return a 400 on failure.
+
+    '
+distractors: []
+prompt_notes: 'PR description says: webhooks for customer changes'

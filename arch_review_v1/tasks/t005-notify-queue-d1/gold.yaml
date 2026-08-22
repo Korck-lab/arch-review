@@ -1,0 +1,21 @@
+id: t005-notify-queue-d1
+difficulty: easy
+source:
+  kind: synthetic
+defects:
+- id: d1
+  category: resilience
+  file: notify/sender.py
+  lines:
+  - 4
+  - 16
+  summary: retry without idempotency can send the same email twice
+  rationale: 'provider.send takes no idempotency key. If a delivery succeeds but the response
+    is lost (a timeout after the provider commits), the retry loop calls send again and the
+    customer gets the email twice. The PR claims "without sending anything twice", but the
+    loop has no deduplication. A reviewer would derive an idempotency key from the email id
+    and let the provider dedupe replays.
+
+    '
+distractors: []
+prompt_notes: 'PR description says: more robust delivery'

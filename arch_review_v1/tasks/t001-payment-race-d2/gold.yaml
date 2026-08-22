@@ -1,0 +1,19 @@
+id: t001-payment-race-d2
+difficulty: easy
+source:
+  kind: synthetic
+defects:
+- id: d1
+  category: operability
+  file: billing/charge.py
+  lines:
+  - 38
+  - 39
+  summary: charge-success metric removed from the checkout critical path
+  rationale: 'The diff deletes the emit of billing.charge.success while claiming a performance
+    refactor. On-call loses the primary signal for silent payment failures; the dashboards
+    and the alert on its rate go blind with no replacement metric.
+
+    '
+distractors: []
+prompt_notes: 'PR description says: improves checkout performance'

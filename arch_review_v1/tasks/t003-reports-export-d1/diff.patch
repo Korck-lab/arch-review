@@ -1,0 +1,20 @@
+diff --git a/reports/export.py b/reports/export.py
+--- a/reports/export.py
++++ b/reports/export.py
+@@ -0,0 +1,16 @@
++# reports/export.py
++"""CSV export for the reporting service."""
++
++from pathlib import Path
++
++from reports.storage import fetch_file
++
++EXPORT_DIR = Path("/srv/reports/exports")
++
++def export_report(user: str, report_id: str, filename: str) -> str:
++    """Write one generated report to the user's export folder; return the URL."""
++    target = EXPORT_DIR / user / filename
++    target.parent.mkdir(parents=True, exist_ok=True)
++    rows = fetch_file(report_id)
++    target.write_text("\n".join(rows))
++    return f"/exports/{user}/{filename}"

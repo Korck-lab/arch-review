@@ -1,0 +1,38 @@
+diff --git a/reports/storage.py b/reports/storage.py
+--- a/reports/storage.py
++++ b/reports/storage.py
+@@ -1,12 +1,32 @@
+ # reports/storage.py
+ """Reads generated report files from the blob storage service."""
+ 
++import time
++import urllib.error
+ import urllib.request
+ 
+ from reports.config import STORAGE_URL
+ 
++# 408/429 and 5xx can be transient; other HTTP statuses are not retryable by this policy.
++RETRYABLE_HTTP = frozenset({408, 429, 500, 502, 503, 504})
++
+ def fetch_file(report_id: str) -> list[str]:
+-    """Read a generated report's lines from the blob storage service."""
++    """Read a generated report's lines; retry transient network errors."""
+     url = f"{STORAGE_URL}/reports/{report_id}"
+-    with urllib.request.urlopen(url, timeout=10) as resp:
++    for attempt in range(3):
++        try:
++            return _read(url)
++        except (urllib.error.URLError, TimeoutError) as exc:
++            if (
++                isinstance(exc, urllib.error.HTTPError)
++                and exc.code not in RETRYABLE_HTTP
++            ):
++                raise  # permanent HTTP status; never retry
++            if attempt == 2:
++                raise
++            time.sleep(0.5 * (2 ** attempt))
++
++def _read(url: str) -> list[str]:
++    """One read of a report from the blob service."""
++    with urllib.request.urlopen(url) as resp:
+         return resp.read().decode().splitlines()

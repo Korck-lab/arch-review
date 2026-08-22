@@ -1,0 +1,22 @@
+id: t006-customer-webhooks-d2
+difficulty: easy
+source:
+  kind: synthetic
+defects:
+- id: d1
+  category: authorization
+  file: api/app.py
+  lines:
+  - 18
+  - 20
+  summary: new webhook route lacks the ownership middleware every other route has
+  rationale: 'The customer route at app.py:13 is decorated with @require_auth, which rejects
+    a caller that may not act on the target customer. The new POST /v1/customers/<customer_id>/webhooks
+    route at 18-20 is registered directly on the app with no such check. Any authenticated
+    caller can register a webhook for another customer''s id and receive that customer''s
+    events. A reviewer would apply the same ownership guard to the webhook route and verify
+    the customer id belongs to the caller.
+
+    '
+distractors: []
+prompt_notes: 'PR description says: webhooks for customer changes'

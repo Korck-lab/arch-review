@@ -1,0 +1,22 @@
+diff --git a/notify/sender.py b/notify/sender.py
+--- a/notify/sender.py
++++ b/notify/sender.py
+@@ -1,8 +1,16 @@
+ # notify/sender.py
+ """Transactional email sender for the notify service."""
+ 
++import time
++
+ from notify import provider
+ 
+ def send(user_id: str, template: str) -> str:
+-    """Send one transactional email."""
+-    return provider.send(user_id, template)
++    """Send one transactional email; retry transient provider failures."""
++    for attempt in range(3):
++        try:
++            return provider.send(user_id, template)
++        except provider.TransientError:
++            if attempt == 2:
++                raise
++            time.sleep(0.2 * (2 ** attempt))

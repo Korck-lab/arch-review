@@ -1,0 +1,21 @@
+diff --git a/warehouse/app.py b/warehouse/app.py
+--- a/warehouse/app.py
++++ b/warehouse/app.py
+@@ -3,6 +3,7 @@
+ 
+ from flask import Flask, jsonify
+ 
++from warehouse.sync import request_sync
+ from warehouse.store import connection
+ 
+ app = Flask(__name__)
+@@ -14,3 +15,9 @@
+ @app.get("/health")
+ def health():
+     return jsonify(ok=True)
++
++@app.post("/sync")
++def sync_now():
++    """Queue one sync pass; do not run it in the request."""
++    request_sync()
++    return jsonify(started=True)

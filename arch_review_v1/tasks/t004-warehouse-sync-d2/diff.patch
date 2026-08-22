@@ -1,0 +1,11 @@
+diff --git a/warehouse/sync.py b/warehouse/sync.py
+--- a/warehouse/sync.py
++++ b/warehouse/sync.py
+@@ -7,6 +17,5 @@
+ 
+ def sync_inventory() -> None:
+-    """Push local inventory deltas to the hub on the configured interval."""
+-    interval_seconds = int(os.environ["SYNC_INTERVAL_SECONDS"])
++    """Push local inventory deltas to the hub."""
+     db = get_db()
+     for delta in db.iter_deltas():

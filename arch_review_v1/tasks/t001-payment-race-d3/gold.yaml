@@ -1,0 +1,21 @@
+id: t001-payment-race-d3
+difficulty: easy
+source:
+  kind: synthetic
+defects:
+- id: d1
+  category: resilience
+  file: billing/charge.py
+  lines:
+  - 33
+  - 37
+  summary: idempotency key minted per call and discarded; a checkout-level retry double-charges
+  rationale: "_do_charge mints order_id = uuid4().hex as the gateway idempotency key and scopes\
+    \ it to the with_retry loop. The key never leaves the call: CheckoutResult.order_id is\
+    \ the gateway's own charge id, so the key is unrecoverable. If the caller retries checkout\
+    \ after a lost response \u2014 the exact case idempotency exists to cover \u2014 the second\
+    \ call mints a fresh key and the gateway bills the card twice. The loop's dedup protects\
+    \ retries inside one call only. A reviewer would derive the key from a stable order identifier\
+    \ the caller passes in, or return the key for reuse.\n"
+distractors: []
+prompt_notes: 'PR description says: improves checkout performance'

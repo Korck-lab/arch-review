@@ -1,0 +1,12 @@
+diff --git a/notify/queue.py b/notify/queue.py
+--- a/notify/queue.py
++++ b/notify/queue.py
+@@ -8,6 +8,7 @@
+     rows = db.fetchall(
+         "SELECT id, user_id, template FROM outbound"
+-        " WHERE claimed_by IS NULL"
++        " WHERE kind = %s AND claimed_by IS NULL"
+         " ORDER BY enqueued_at LIMIT %s",
++        kind,
+         limit,
+     )

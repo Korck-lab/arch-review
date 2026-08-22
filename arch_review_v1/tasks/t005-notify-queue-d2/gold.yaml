@@ -1,0 +1,21 @@
+id: t005-notify-queue-d2
+difficulty: easy
+source:
+  kind: synthetic
+defects:
+- id: d1
+  category: data
+  file: notify/queue.py
+  lines:
+  - 10
+  - 12
+  summary: new kind filter scans the hot queue table without a supporting index
+  rationale: 'claim_batch adds WHERE kind = %s AND claimed_by IS NULL to the pickup query,
+    but the outbound table has indexes only on (id) and (claimed_by); there is no index on
+    (kind). Every worker pickup now scans by kind on the hottest query in the system, so claim
+    latency grows with the table. A reviewer would add an index on (kind, enqueued_at), partial
+    on claimed_by IS NULL, which supports both the filter and the ORDER BY.
+
+    '
+distractors: []
+prompt_notes: 'PR description says: more robust delivery'
