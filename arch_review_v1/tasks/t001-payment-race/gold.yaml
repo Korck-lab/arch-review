@@ -4,28 +4,6 @@ source:
   kind: synthetic
 defects:
   - id: d1
-    category: concurrency
-    file: billing/charge.py
-    lines: [25, 27]
-    summary: "check-then-act between balance read and debit without a lock; double charge under race"
-    rationale: >
-      checkout() reads the balance with get_balance() and later _do_charge()
-      debits the account in a separate call, with no row lock or
-      compare-and-set between them. Two concurrent checkout requests both pass
-      the balance check and both debit, charging the customer twice. A senior
-      reviewer would ask for SELECT ... FOR UPDATE or an atomic conditional
-      UPDATE guarded on the balance.
-  - id: d2
-    category: operability
-    file: billing/charge.py
-    lines: [38, 39]
-    summary: "charge-success metric removed from the checkout critical path"
-    rationale: >
-      The diff deletes the emit of billing.charge.success while claiming a
-      performance refactor. On-call loses the primary signal for silent payment
-      failures; the dashboards and the alert on its rate go blind with no
-      replacement metric.
-  - id: d3
     category: contracts
     file: billing/charge.py
     lines: [25, 27]
@@ -39,8 +17,20 @@ defects:
       used to succeed. That is a behavior change contradicting the PR's claim of
       no behavior change, and it reuses ValueError so callers cannot tell it
       from the amount check. A reviewer would not gate payment on the ledger
-      balance, or would document the new rejection contract.
-  - id: d4
+      balance, or would document the new rejection contract. The gate is also
+      non-atomic, but that is a symptom of the same wrong-gate mechanism, not a
+      separate defect.
+  - id: d2
+    category: operability
+    file: billing/charge.py
+    lines: [38, 39]
+    summary: "charge-success metric removed from the checkout critical path"
+    rationale: >
+      The diff deletes the emit of billing.charge.success while claiming a
+      performance refactor. On-call loses the primary signal for silent payment
+      failures; the dashboards and the alert on its rate go blind with no
+      replacement metric.
+  - id: d3
     category: resilience
     file: billing/charge.py
     lines: [33, 39]
