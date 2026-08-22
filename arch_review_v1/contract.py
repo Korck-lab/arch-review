@@ -164,6 +164,20 @@ def validate_gold(raw, task_dir: Path) -> dict:
     }
 
 
+def _verbatim_norm(text: str) -> str:
+    """Normalize a quote or review for verbatim comparison.
+
+    Reviewers wrap identifiers and commands in inline code backticks; the
+    extractor's quote routinely strips them, which is not a paraphrase. Remove
+    backticks and collapse whitespace runs on both sides so formatting does not
+    fail the verbatim check. A genuinely reworded quote still differs after
+    normalization.
+    """
+    import re as _re
+
+    return _re.sub(r"\s+", " ", text.replace("`", "")).strip()
+
+
 def validate_extraction(
     extraction: ClaimExtraction,
     file_list: list[str],
@@ -173,7 +187,9 @@ def validate_extraction(
 
     Claims reference files in the diff (or the general sentinel), have dense
     sequential ids (c1..cN), carry a verbatim quote from the review, and have
-    non-empty summaries. The validator never sees gold.
+    non-empty summaries. The validator never sees gold. The verbatim check
+    compares normalized text, so inline-code backticks in the review do not
+    fail an otherwise exact quote.
     """
     allowed = set(file_list) | {GENERAL_SENTINEL}
     expected_ids = [f"c{i}" for i in range(1, len(extraction.claims) + 1)]
@@ -182,6 +198,7 @@ def validate_extraction(
         raise ContractError(
             f"claim ids must be dense c1..c{len(extraction.claims)}, got {actual_ids}"
         )
+    norm_review = _verbatim_norm(review) if review is not None else None
     for claim in extraction.claims:
         if claim.file not in allowed:
             raise ContractError(
@@ -189,7 +206,7 @@ def validate_extraction(
             )
         if not claim.quote:
             raise ContractError(f"claim {claim.id!r} has empty quote")
-        if review is not None and claim.quote not in review:
+        if norm_review is not None and _verbatim_norm(claim.quote) not in norm_review:
             raise ContractError(f"claim {claim.id!r} quote is not verbatim in the review")
         if not claim.summary.strip():
             raise ContractError(f"claim {claim.id!r} has empty summary")

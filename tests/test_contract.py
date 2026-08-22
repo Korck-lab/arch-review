@@ -267,6 +267,22 @@ def test_extraction_quote_verbatim_passes():
     assert result.claims[0].quote == "double bills"
 
 
+def test_extraction_quote_survives_inline_code_backticks():
+    # Reviewers wrap identifiers in backticks; the extractor strips them. That
+    # is formatting, not a paraphrase, so the verbatim check must pass.
+    review = "`sync_inventory` no longer reads `os.environ[\"SYNC_INTERVAL_SECONDS\"]`"
+    extraction = ClaimExtraction(
+        claims=[Claim(
+            id="c1",
+            file="warehouse/sync.py",
+            quote='sync_inventory no longer reads os.environ["SYNC_INTERVAL_SECONDS"]',
+            summary="interval override dropped",
+        )]
+    )
+    result = validate_extraction(extraction, ["warehouse/sync.py"], review=review)
+    assert result.claims[0].summary == "interval override dropped"
+
+
 def test_extraction_empty_summary_rejected():
     extraction = ClaimExtraction(
         claims=[Claim(id="c1", file="billing/charge.py", quote="x", summary="  ")]

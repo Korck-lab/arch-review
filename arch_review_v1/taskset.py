@@ -162,6 +162,9 @@ def _review_prompt(context: str, prompt_notes: str, diff: str) -> str:
         "emitted metric — is a real defect and must be reported. Do not "
         "speculate about absent schemas, migrations, deployment wiring, "
         "callers, validation, quotas, scale, or downstream behavior unless the "
-        "supplied material establishes their absence. Omit merely theoretical "
+        "supplied material establishes their absence. One caller class is its "
+        "own evidence: a changed function signature, parameter, return type, "
+        "or default breaks every existing caller even if the diff shows none. "
+        "Report such a contract change as a defect. Omit merely theoretical "
         "concerns. Do not comment on style or formatting."
     )
