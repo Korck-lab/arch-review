@@ -33,6 +33,7 @@ General engineering decisions, usable across projects. They generalize the ADRs 
 | [0025](0025-delegate-context-heavy-work-to-subagents-the-main-session-keeps-the-decision.md) | Delegate context-heavy work to subagents; the main session keeps the decision |
 | [0026](0026-commits-and-pushes-are-automatic.md) | Commits and pushes are automatic; do not ask |
 | [0027](0027-eval-failures-are-fixed-at-the-root-architectural-cause-not-patched-at-the-symptom.md) | An eval failure is fixed at its root architectural cause, never patched at the symptom |
+| [0028](0028-the-distinct-category-rule-names-defect-types-finely.md) | The distinct-category rule names defect types finely; authorization, injection, and traversal are separate from security |
 
 ## Provenance
 

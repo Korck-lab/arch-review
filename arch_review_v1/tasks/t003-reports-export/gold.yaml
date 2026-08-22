@@ -4,7 +4,7 @@ source:
   kind: synthetic
 defects:
   - id: d1
-    category: security
+    category: traversal
     file: reports/export.py
     lines: [12, 13]
     summary: "path traversal: caller-controlled filename joined onto EXPORT_DIR"
@@ -19,13 +19,18 @@ defects:
     category: resilience
     file: reports/storage.py
     lines: [31, 32]
-    summary: "blob fetch dropped its timeout when the retry loop was added"
+    summary: "blob fetch's retry misses the transient failures it claims to cover: the timeout is gone and mid-read drops are not caught"
     rationale: >
-      The old code called urlopen(url, timeout=10). The PR removes the timeout
-      and wraps the call in a retry loop "so slow responses are retried". A
-      hung blob service now blocks the worker forever: _read never returns, so
-      the retry never runs. A reviewer would keep a bounded timeout and treat a
-      timeout as one of the retried transient errors.
+      The PR claims the read is now "retried for transient network errors", but
+      two transient cases defeat the new retry. _read calls urlopen(url) with
+      no timeout — the previous timeout=10 is gone — so a hung blob service
+      blocks the worker forever and the TimeoutError retry branch is dead code.
+      And the retry catches only URLError and TimeoutError: a connection that
+      drops mid-body raises http.client.IncompleteRead (or RemoteDisconnected),
+      which neither catch covers, so it escapes on the first attempt. Both
+      symptoms are one mechanism: the new retry wrapper does not cover the
+      transient cases it claims. A reviewer would restore the bounded timeout
+      and catch the read-time failures urlopen can raise.
 distractors:
   - id: x1
     file: reports/storage.py
@@ -37,6 +42,18 @@ distractors:
       Permanent HTTP statuses are re-raised immediately, and the last attempt
       re-raises anything else, so a genuine failure still surfaces loudly. The
       request is an idempotent GET, so a retried read cannot corrupt state, and
-      the backoff is bounded at three attempts. The retry mechanics are sound;
-      the defect is only the missing timeout inside _read.
+      the backoff is bounded at three attempts. The retry cannot swallow a real
+      failure; its incomplete coverage is d2, not this concern.
+  - id: x2
+    file: reports/export.py
+    lines: [21, 21]
+    concern: "write_text is not atomic, so a crash or a concurrent reader can see a truncated CSV at the target path"
+    why_ok: >
+      The URL is returned only after write_text returns, so the file is
+      complete before it is advertised. The diff establishes no concurrent
+      reader of the same path: nothing in the supplied material serves or reads
+      /exports/... while the write is in progress. A crash mid-write leaves a
+      partial file at a path that was never advertised for that export, and the
+      next export of the same name overwrites it. The concern needs a reader
+      the material does not establish, so it is speculative, not a defect.
 prompt_notes: "PR description says: self-service CSV export"

@@ -146,6 +146,65 @@ def test_unknown_category_rejected():
         validate_gold(gold, _TASK_DIR)
 
 
+def test_security_family_categories_accepted_as_distinct():
+    # ADR-0028: authorization, traversal, and resilience are distinct terms, so
+    # a hard task may carry all three even though two are security-family.
+    gold = {
+        "id": "t001-payment-race",
+        "difficulty": "hard",
+        "source": {"kind": "synthetic"},
+        "defects": [
+            {
+                "id": "d1",
+                "category": "traversal",
+                "file": "reports/export.py",
+                "lines": [12, 13],
+                "summary": "path traversal",
+                "rationale": "hand-written: filename joins EXPORT_DIR unvalidated",
+            },
+            {
+                "id": "d2",
+                "category": "authorization",
+                "file": "reports/export.py",
+                "lines": [16, 20],
+                "summary": "no ownership check",
+                "rationale": "hand-written: report_id not bound to user",
+            },
+            {
+                "id": "d3",
+                "category": "resilience",
+                "file": "reports/storage.py",
+                "lines": [31, 32],
+                "summary": "timeout dropped",
+                "rationale": "hand-written: urlopen lost its timeout",
+            },
+        ],
+        "distractors": [
+            {
+                "id": "x1",
+                "file": "reports/storage.py",
+                "lines": [16, 27],
+                "concern": "retry masks a real failure",
+                "why_ok": "permanent statuses re-raise immediately",
+            },
+            {
+                "id": "x2",
+                "file": "reports/export.py",
+                "lines": [21, 21],
+                "concern": "write is not atomic",
+                "why_ok": "the URL is advertised only after the write returns",
+            },
+        ],
+        "prompt_notes": "self-service export",
+    }
+    result = validate_gold(gold, _TASK_DIR)
+    assert [d.category for d in result["defects"]] == [
+        "traversal",
+        "authorization",
+        "resilience",
+    ]
+
+
 def test_malformed_lines_rejected():
     gold = _good_gold()
     gold["defects"][0]["lines"] = [42]

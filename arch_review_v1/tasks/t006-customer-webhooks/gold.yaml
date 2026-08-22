@@ -15,7 +15,7 @@ defects:
       transition period is a contract break. A reviewer would keep both keys
       during a deprecation window or version the endpoint.
   - id: d2
-    category: security
+    category: authorization
     file: api/app.py
     lines: [18, 24]
     summary: "new webhook route lacks the ownership middleware every other route has"

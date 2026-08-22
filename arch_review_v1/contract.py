@@ -14,15 +14,25 @@ from arch_review_v1.schemas import ClaimExtraction, Defect, Distractor, MatchRes
 
 GENERAL_SENTINEL = "general"
 
+# The distinct-category rule (medium/hard) requires every defect in one task to
+# carry a different term, so the vocabulary is split finely where one bucket
+# would hide variance. Security-family terms are disjoint (ADR-0028):
+# authorization (access control), injection (input reaching an interpreter),
+# traversal (path escape), and security (the residue: secrets, crypto, SSRF,
+# CSRF, TLS). A task may carry two security-family defects when they are
+# different review skills.
 CATEGORIES = frozenset(
     {
         "concurrency",
         "data",
         "contracts",
-        "security",
         "resilience",
         "architecture",
         "operability",
+        "security",
+        "authorization",
+        "injection",
+        "traversal",
     }
 )
 DIFFICULTIES = frozenset({"easy", "medium", "hard"})
