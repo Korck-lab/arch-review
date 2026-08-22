@@ -27,11 +27,17 @@ from urllib.parse import urlparse
 # proxy and execs `claude`. We call the binary directly with that env, so the
 # model path is identical and stdout is free of the launcher's banner lines.
 CLAUDE_BIN = os.environ.get("CLAUDE_BIN", "claude")
-# Pinned model id passed to `claudei -p --model`. Must be one the
+# Model id passed to `claudei -p --model` for reviewer calls. Must be one the
 # deepseek-in-claude proxy on :8016 registers; the display form
 # `deepseek-v4-flash(1M)` is not recognized, its registered id is
 # `claude-deepseek-v4-flash[1m]`.
 PROXY_MODEL = os.environ.get("CLAUDE_PROXY_MODEL", "claude-deepseek-v4-flash[1m]")
+# Stronger alias for judge calls. The eval asks for anthropic/claude-sonnet-5
+# as judge; this local path has no sonnet, so the closest stronger model is
+# deepseek-v4-pro, served under the same display-id convention on :8016.
+PROXY_JUDGE_MODEL = os.environ.get(
+    "CLAUDE_PROXY_JUDGE_MODEL", "claude-deepseek-v4-pro[1m]"
+)
 _FENCE = re.compile(r"^\s*```(?:json)?\s*|\s*```\s*$", re.MULTILINE)
 
 
@@ -43,8 +49,16 @@ def strip_fences(text: str) -> str:
 
 
 def request_model(body: dict) -> str | None:
-    """The model for `claudei -p --model`. Pinned: every call routes through
-    the one configured DeepSeek alias."""
+    """The model for `claudei -p --model`, honoring the caller's request.
+
+    The eval sends reviewer calls as deepseek/deepseek-v4-flash and judge
+    calls as anthropic/claude-sonnet-5. A judge request maps to the stronger
+    pro alias; anything else uses the pinned flash alias. A request that does
+    not say flash or sonnet keeps the pinned default.
+    """
+    requested = (body.get("model") or "").lower()
+    if "sonnet" in requested or "pro" in requested:
+        return PROXY_JUDGE_MODEL
     return PROXY_MODEL
 
 
