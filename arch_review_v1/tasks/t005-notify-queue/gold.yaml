@@ -63,4 +63,22 @@ distractors:
       row keeps claimed_by IS NULL, so the next pickup selects it again and
       another worker sends it. A short batch costs one cycle of latency; no
       email is dropped.
+  - id: x3
+    file: notify/sender.py
+    lines: [9, 14]
+    concern: "the retry backoff blocks the worker with time.sleep"
+    why_ok: >
+      The sleep runs only after provider.send raises TransientError, the
+      failure path, and is bounded: 0.2s then 0.4s, at most 0.6s before the
+      third attempt raises. A worker whose provider degrades backs off briefly
+      and gives up; it does not stall. Bounded retry backoff is not a defect.
+  - id: x4
+    file: notify/queue.py
+    lines: [18, 18]
+    concern: "db.execute(...).rowcount assumes a cursor return the diff never shows"
+    why_ok: >
+      The context states notify.db's execute returns a cursor-like object
+      whose rowcount is the number of affected rows. The pre-diff caller
+      ignored the return, but the type is part of the documented store
+      contract, so reading .rowcount is safe.
 prompt_notes: "PR description says: more robust delivery"

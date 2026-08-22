@@ -1,5 +1,5 @@
 id: t001-payment-race
-difficulty: medium
+difficulty: hard
 source:
   kind: synthetic
 defects:
@@ -25,14 +25,50 @@ defects:
       performance refactor. On-call loses the primary signal for silent payment
       failures; the dashboards and the alert on its rate go blind with no
       replacement metric.
+  - id: d3
+    category: contracts
+    file: billing/charge.py
+    lines: [25, 27]
+    summary: "new balance pre-check rejects checkouts the same code used to allow"
+    rationale: >
+      The context states checkout charges the card on file and debits the
+      internal balance ledger: the card is the funding source, the ledger only
+      records the debit. The pre-check now raises ValueError when the ledger
+      balance is below the amount, before the gateway is reached, so a customer
+      with a valid card and a low ledger balance is refused where the same call
+      used to succeed. That is a behavior change contradicting the PR's claim of
+      no behavior change, and it reuses ValueError so callers cannot tell it
+      from the amount check. A reviewer would not gate payment on the ledger
+      balance, or would document the new rejection contract.
 distractors:
   - id: x1
     file: billing/retry.py
     lines: [13, 27]
     concern: "duplicate charge on retry"
     why_ok: >
-      with_retry reuses the same idempotency_key (the order id) on every
+      with_retry passes the same idempotency_key (the order id) on every
       attempt, and the gateway deduplicates identical-key replays, so a retried
-      charge cannot double-bill the customer. The loop looks like it could
-      double-charge but is safe.
+      charge cannot double-bill the customer. The key is minted per checkout
+      call; deduplicating a caller-level retry of the whole checkout is outside
+      this diff, since no caller here retries checkout.
+  - id: x2
+    file: billing/charge.py
+    lines: [25, 25]
+    concern: "the pre-check and retry backoff add latency to the checkout path"
+    why_ok: >
+      A successful checkout adds one local balance read and no sleep; the
+      retry backoff runs only after a GatewayError, the exceptional path, and
+      is bounded at 0.3s total. An insufficient-funds checkout is rejected
+      before the card call, the slowest round trip, so the check makes the
+      common failure case faster. The PR's latency claim concerns the success
+      path, which gains one local read.
+  - id: x3
+    file: billing/retry.py
+    lines: [17, 27]
+    concern: "with_retry returns None when attempts is zero, violating its -> T annotation"
+    why_ok: >
+      attempts defaults to 3 and the only caller does not override it, so the
+      loop always runs at least one attempt and always returns a charge or
+      raises. An attempts<=0 call is unreachable in this codebase; the
+      annotation edge is speculative.
 prompt_notes: "PR description says: improves checkout performance"
