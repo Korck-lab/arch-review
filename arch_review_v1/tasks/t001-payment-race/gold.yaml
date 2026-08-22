@@ -37,7 +37,7 @@ defects:
   - id: d3
     category: resilience
     file: billing/charge.py
-    lines: [33, 39]
+    lines: [33, 37]
     summary: "idempotency key minted per call and discarded; a checkout-level retry double-charges"
     rationale: >
       _do_charge mints order_id = uuid4().hex as the gateway idempotency key

@@ -17,12 +17,12 @@ defects:
   - id: d2
     category: authorization
     file: api/app.py
-    lines: [18, 24]
+    lines: [18, 20]
     summary: "new webhook route lacks the ownership middleware every other route has"
     rationale: >
       The customer route at app.py:13 is decorated with @require_auth, which
       rejects a caller that may not act on the target customer. The new
-      POST /v1/customers/<customer_id>/webhooks route at 18-24 is registered
+      POST /v1/customers/<customer_id>/webhooks route at 18-20 is registered
       directly on the app with no such check. Any authenticated caller can
       register a webhook for another customer's id and receive that customer's
       events. A reviewer would apply the same ownership guard to the webhook
@@ -30,7 +30,7 @@ defects:
   - id: d3
     category: resilience
     file: api/app.py
-    lines: [24, 29]
+    lines: [21, 29]
     summary: "webhook_register indexes the request body without validating it, so malformed input crashes the route with a 500"
     rationale: >
       payload = request.get_json() returns None when the request has no JSON

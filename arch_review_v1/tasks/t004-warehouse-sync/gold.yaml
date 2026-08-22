@@ -18,7 +18,7 @@ defects:
   - id: d2
     category: operability
     file: warehouse/sync.py
-    lines: [11, 11]
+    lines: [19, 19]
     summary: "sync interval pinned in code; the environment override is gone"
     rationale: >
       The job used to read SYNC_INTERVAL_SECONDS from the environment. The PR
@@ -42,7 +42,7 @@ defects:
   - id: d4
     category: contracts
     file: warehouse/sync.py
-    lines: [66, 68]
+    lines: [34, 38]
     summary: "the queue is the only path to sync and drains hourly: with no queued job nothing syncs, and a triggered job waits up to an hour"
     rationale: >
       run_forever runs sync_inventory() only inside _drain_jobs, once per
