@@ -2,7 +2,7 @@
 
 `api` is the public REST API of a SaaS platform. Authenticated clients manage their customer records and now want push notifications when a customer's data changes. Two dependencies are in play: `api.db` wraps the API's PostgreSQL tables, and `api.secrets` mints webhook signing secrets.
 
-`api/customers.py` serves customer records. `api/webhooks.py` registers webhooks that receive a customer's events. Existing API routes sit behind an ownership middleware that checks the caller may act on the customer id it passes.
+`api/customers.py` serves customer records. `api/webhooks.py` registers webhooks that receive a customer's events. Existing API routes sit behind an ownership middleware that checks the caller may act on the customer id it passes. `api.db`'s `insert` executes an INSERT and returns the inserted row, including generated values such as the table's `id`.
 
 ## The PR
 

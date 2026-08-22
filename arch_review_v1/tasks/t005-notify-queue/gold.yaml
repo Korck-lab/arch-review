@@ -74,7 +74,7 @@ distractors:
       and gives up; it does not stall. Bounded retry backoff is not a defect.
   - id: x4
     file: notify/queue.py
-    lines: [18, 18]
+    lines: [17, 22]
     concern: "db.execute(...).rowcount assumes a cursor return the diff never shows"
     why_ok: >
       The context states notify.db's execute returns a cursor-like object

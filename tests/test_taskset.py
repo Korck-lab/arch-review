@@ -24,8 +24,8 @@ def test_load_builds_the_pilot_task():
     ts = ArchReviewTaskset(ArchReviewTasksetConfig())
     task = ts.load()[0]
     assert task.data.file_list == ["billing/charge.py", "billing/retry.py"]
-    assert [d.id for d in task.data.seeded_defects] == ["d1", "d2"]
-    assert [x.id for x in task.data.distractors] == ["x1"]
-    assert task.data.difficulty == "medium"
+    assert [d.id for d in task.data.seeded_defects] == ["d1", "d2", "d3"]
+    assert [x.id for x in task.data.distractors] == ["x1", "x2", "x3"]
+    assert task.data.difficulty == "hard"
     assert "checkout" in task.data.prompt
     assert "billing/charge.py" in task.data.diff
