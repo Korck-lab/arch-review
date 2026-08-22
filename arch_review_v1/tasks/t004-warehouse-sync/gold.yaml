@@ -39,6 +39,21 @@ defects:
       and the queued job rows are never marked processed. A reviewer would ask
       for a per-delta try/except that logs and continues, so one bad delta
       cannot take the whole job down.
+  - id: d4
+    category: contracts
+    file: warehouse/sync.py
+    lines: [66, 68]
+    summary: "the /sync endpoint queues but the drainer polls hourly, so an on-demand trigger runs up to an hour late"
+    rationale: >
+      The PR claims operators can "trigger a sync on demand", and the endpoint
+      returns started=True immediately. But request_sync only inserts a
+      sync_jobs row; run_forever drains the queue once per SYNC_INTERVAL_SECONDS
+      (3600) sleep. A trigger issued right after a drain waits almost a full
+      hour before any sync runs. That contradicts the on-demand claim: the
+      endpoint starts nothing on demand, it only queues for the next hourly
+      poll. A reviewer would wake the drainer on insert (poll with a short
+      interval, or a notify channel), or drop the on-demand claim and document
+      the hourly cadence.
 distractors:
   - id: x1
     file: warehouse/sync.py

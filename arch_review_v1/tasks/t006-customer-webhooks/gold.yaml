@@ -1,5 +1,5 @@
 id: t006-customer-webhooks
-difficulty: medium
+difficulty: hard
 source:
   kind: synthetic
 defects:
@@ -27,6 +27,20 @@ defects:
       register a webhook for another customer's id and receive that customer's
       events. A reviewer would apply the same ownership guard to the webhook
       route and verify the customer id belongs to the caller.
+  - id: d3
+    category: resilience
+    file: api/app.py
+    lines: [24, 29]
+    summary: "webhook_register indexes the request body without validating it, so malformed input crashes the route with a 500"
+    rationale: >
+      payload = request.get_json() returns None when the request has no JSON
+      body or a non-JSON content type; payload["url"] then raises TypeError.
+      A JSON body missing the "url" or "events" key raises KeyError, and a
+      non-list "events" value makes ",".join iterate its characters. None of
+      these are caught, so every malformed request surfaces as an unhandled
+      500 instead of a 4xx. The absence of validation is established by the
+      diff itself, not speculated. A reviewer would guard the body, check the
+      keys and their types, and return a 400 on failure.
 distractors:
   - id: x1
     file: api/webhooks.py
