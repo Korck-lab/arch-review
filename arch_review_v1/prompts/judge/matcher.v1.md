@@ -22,6 +22,9 @@ For each claim, pick one kind:
 
 Matching rules:
 - Match on file AND cause-mechanism agreement. Line references corroborate but are not required.
+- Match semantic mechanisms, not exact wording. A claim naming the specific missing guard, decorator, check, or operation matches a defect stated at a higher abstraction when both describe the same changed code and failure path. Different consequences do not prevent a match when the root cause is the same.
+- Judge every claim independently against every defect. A defect already matched by another claim remains a valid match. Never label a claim false_alarm merely because its defect was already credited — the scorer neutralizes duplicate matches.
+- Before returning false_alarm, compare the claim against defects already assigned to other claims and ask whether it is another formulation, specialization, cause, or direct symptom of that defect.
 - A claim that identifies a uniquely named mechanism without a file may match, capped at partial.
 - A distractor claim is exempt only when its concern is exactly the one why_ok addresses.
 - A defect cited by more than one claim is credited once, at its best status.

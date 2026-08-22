@@ -15,10 +15,10 @@ Files changed in the diff (exact paths):
 Extract every distinct issue the review raises. Output the schema ClaimExtraction.
 
 Rules:
-- One claim per distinct issue. Do not merge or split issues.
+- Extract one claim per independently actionable root cause. Merge a headline, summary, recommendation, and detailed bullet when they describe the same issue. Merge repeated claims that differ only in abstraction, symptom, or consequence, retaining the most specific file and cause quote. Split only when fixing one mechanism would leave the other issue unresolved.
 - A claim's file must be one of the exact paths above. If the issue is not tied to a specific file, use "general".
 - Claim ids are dense and sequential: c1, c2, ...
-- Copy a verbatim quote from the review as evidence for each claim. The quote must appear word-for-word in the review text.
+- Copy a verbatim quote from the review as evidence for each claim. The quote must appear word-for-word in the review text. Keep it short — at most 20 words; a short distinctive phrase is safest. Do not paraphrase or reword the quote.
 - Keep summary to one sentence that captures the issue's cause.
 - Extract only what the review actually says. Do not add issues. Do not judge whether an issue is real — extraction only.
 

@@ -81,8 +81,10 @@ def score_review(
     distractor_hits = sum(1 for v in verdicts if v.kind == "distractor")
     false_alarms = sum(1 for v in verdicts if v.kind == "false_alarm")
 
-    # In-order credit with the duplicate rule: a claim whose credits are all
-    # already fully credited is neutral (excluded from numerator and denominator).
+    # In-order credit with the duplicate rule (locked formula, issue #3): a claim
+    # whose credits are all already fully credited is neutral (excluded from
+    # numerator and denominator). A defect fully credited anywhere is never
+    # counted partial.
     full_credited: set[str] = set()
     partial_credited: set[str] = set()
     matched_claims = 0
@@ -99,7 +101,6 @@ def score_review(
             full_credited.update(credits)
         else:
             partial_credited.update(credits)
-    # a defect fully credited anywhere is never counted partial.
     partial_credited -= full_credited
 
     d = len(defects)
