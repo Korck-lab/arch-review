@@ -27,17 +27,20 @@ from urllib.parse import urlparse
 # proxy and execs `claude`. We call the binary directly with that env, so the
 # model path is identical and stdout is free of the launcher's banner lines.
 CLAUDE_BIN = os.environ.get("CLAUDE_BIN", "claude")
-# Model id passed to `claudei -p --model` for reviewer calls. Must be one the
-# deepseek-in-claude proxy on :8016 registers; the display form
-# `deepseek-v4-flash(1M)` is not recognized, its registered id is
-# `claude-deepseek-v4-flash[1m]`.
-PROXY_MODEL = os.environ.get("CLAUDE_PROXY_MODEL", "claude-deepseek-v4-flash[1m]")
+# Model id passed to `claudei -p --model` for reviewer calls. It is the real
+# DeepSeek id, NOT the `claude-deepseek-*[1m]` display id. Claude Code resolves
+# `claude-`-prefixed ids through gateway model discovery, which the deepseek
+# proxy merges with api.anthropic.com's catalog; when that upstream stalls, the
+# discovery fetch times out and `claude -p` exits 1 with unrecognized_model —
+# it took out 83 of 152 rollouts in one eval run. A plain id like
+# `deepseek-v4-flash` is treated as a custom model: `claude -p` warns and passes
+# it through, and the proxy on :8016 routes it directly. 200k context is ample
+# for these ~40k-token prompts, so the `[1m]` window suffix is not needed.
+PROXY_MODEL = os.environ.get("CLAUDE_PROXY_MODEL", "deepseek-v4-flash")
 # Stronger alias for judge calls. The eval asks for anthropic/claude-sonnet-5
 # as judge; this local path has no sonnet, so the closest stronger model is
-# deepseek-v4-pro, served under the same display-id convention on :8016.
-PROXY_JUDGE_MODEL = os.environ.get(
-    "CLAUDE_PROXY_JUDGE_MODEL", "claude-deepseek-v4-pro[1m]"
-)
+# deepseek-v4-pro. Same passthrough rule as PROXY_MODEL.
+PROXY_JUDGE_MODEL = os.environ.get("CLAUDE_PROXY_JUDGE_MODEL", "deepseek-v4-pro")
 _FENCE = re.compile(r"^\s*```(?:json)?\s*|\s*```\s*$", re.MULTILINE)
 
 
