@@ -56,4 +56,4 @@ distractors:
       partial file at a path that was never advertised for that export, and the
       next export of the same name overwrites it. The concern needs a reader
       the material does not establish, so it is speculative, not a defect.
-prompt_notes: "PR description says: self-service CSV export"
+prompt_notes: "PR description says: add an export endpoint for reports"

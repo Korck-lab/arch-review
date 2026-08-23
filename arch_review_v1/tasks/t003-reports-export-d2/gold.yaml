@@ -9,17 +9,18 @@ defects:
   lines:
   - 4
   - 31
-  summary: 'blob fetch''s retry misses the transient failures it claims to cover: the timeout
-    is gone and mid-read drops are not caught'
-  rationale: "The PR claims the read is now \"retried for transient network errors\", but\
-    \ two transient cases defeat the new retry. _read calls urlopen(url) with no timeout \u2014\
-    \ the previous timeout=10 is gone \u2014 so a hung blob service blocks the worker forever\
-    \ and the TimeoutError retry branch is dead code. And the retry catches only URLError\
-    \ and TimeoutError: a connection that drops mid-body raises http.client.IncompleteRead\
-    \ (or RemoteDisconnected), which neither catch covers, so it escapes on the first attempt.\
-    \ Both symptoms are one mechanism: the new retry wrapper does not cover the transient\
-    \ cases it claims. A reviewer would restore the bounded timeout and catch the read-time\
-    \ failures urlopen can raise.\n"
+  summary: 'blob fetch''s retry misses the transient failures it claims to cover:
+    the timeout is gone and mid-read drops are not caught'
+  rationale: "The PR claims the read is now \"retried for transient network errors\"\
+    , but two transient cases defeat the new retry. _read calls urlopen(url) with\
+    \ no timeout \u2014 the previous timeout=10 is gone \u2014 so a hung blob service\
+    \ blocks the worker forever and the TimeoutError retry branch is dead code. And\
+    \ the retry catches only URLError and TimeoutError: a connection that drops mid-body\
+    \ raises http.client.IncompleteRead (or RemoteDisconnected), which neither catch\
+    \ covers, so it escapes on the first attempt. Both symptoms are one mechanism:\
+    \ the new retry wrapper does not cover the transient cases it claims. A reviewer\
+    \ would restore the bounded timeout and catch the read-time failures urlopen can\
+    \ raise.\n"
 distractors:
 - id: x1
   file: reports/storage.py
@@ -27,12 +28,13 @@ distractors:
   - 16
   - 27
   concern: retry loop could mask a real failure
-  why_ok: 'Only transient failures are retried: transport URLErrors, direct timeouts (TimeoutError),
-    and retryable HTTP statuses (408, 429, 500, 502, 503, 504). Permanent HTTP statuses are
-    re-raised immediately, and the last attempt re-raises anything else, so a genuine failure
-    still surfaces loudly. The request is an idempotent GET, so a retried read cannot corrupt
-    state, and the backoff is bounded at three attempts. The retry cannot swallow a real failure;
-    its incomplete coverage is d2, not this concern.
+  why_ok: 'Only transient failures are retried: transport URLErrors, direct timeouts
+    (TimeoutError), and retryable HTTP statuses (408, 429, 500, 502, 503, 504). Permanent
+    HTTP statuses are re-raised immediately, and the last attempt re-raises anything
+    else, so a genuine failure still surfaces loudly. The request is an idempotent
+    GET, so a retried read cannot corrupt state, and the backoff is bounded at three
+    attempts. The retry cannot swallow a real failure; its incomplete coverage is
+    d2, not this concern.
 
     '
-prompt_notes: 'PR description says: self-service CSV export'
+prompt_notes: 'PR description says: add an export endpoint for reports'
