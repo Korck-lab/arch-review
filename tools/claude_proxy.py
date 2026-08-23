@@ -36,11 +36,11 @@ CLAUDE_BIN = os.environ.get("CLAUDE_BIN", "claude")
 # `deepseek-v4-flash` is treated as a custom model: `claude -p` warns and passes
 # it through, and the proxy on :8016 routes it directly. 200k context is ample
 # for these ~40k-token prompts, so the `[1m]` window suffix is not needed.
-PROXY_MODEL = os.environ.get("CLAUDE_PROXY_MODEL", "deepseek-v4-flash")
+PROXY_MODEL = os.environ.get("CLAUDE_PROXY_MODEL", "mimo-v2.5")
 # Stronger alias for judge calls. The eval asks for anthropic/claude-sonnet-5
 # as judge; this local path has no sonnet, so the closest stronger model is
 # deepseek-v4-pro. Same passthrough rule as PROXY_MODEL.
-PROXY_JUDGE_MODEL = os.environ.get("CLAUDE_PROXY_JUDGE_MODEL", "deepseek-v4-pro")
+PROXY_JUDGE_MODEL = os.environ.get("CLAUDE_PROXY_JUDGE_MODEL", "mimo-v2.5-pro")
 _FENCE = re.compile(r"^\s*```(?:json)?\s*|\s*```\s*$", re.MULTILINE)
 
 
