@@ -7,3 +7,5 @@
 ## The PR
 
 Title: "cache product lookups to speed up the orders page". The PR replaces the join that resolved customer names with a per-order lookup, catches failures in that lookup so the page renders anyway, and adds an in-process cache for product titles. It claims the changes cut database load without changing what the page shows.
+
+Note: the customer name lookup now runs once per order row inside a loop. A page with N orders issues N separate customer queries, all for the same customer id.
