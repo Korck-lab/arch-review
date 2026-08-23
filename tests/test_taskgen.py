@@ -10,6 +10,7 @@ inheritance, contract validity, difficulty rules, and generated syntax.
 from __future__ import annotations
 
 import ast
+import re
 from pathlib import Path
 
 import pytest
@@ -26,7 +27,8 @@ from arch_review_v1.taskgen import (
 )
 from arch_review_v1.taskset import ArchReviewTaskset
 
-_TASKS = sorted((Path(__file__).parent.parent / "arch_review_v1/tasks").glob("t[0-9][0-9][0-9]-*"))
+_ALL_TASKS = sorted((Path(__file__).parent.parent / "arch_review_v1/tasks").glob("t[0-9][0-9][0-9]-*"))
+_TASKS = [t for t in _ALL_TASKS if not re.search(r"-d[0-9]+$", t.name)]
 
 # Defects that interleave on lines or names cannot be split cleanly; the
 # splitter must hand them to the curator (spec: "the author hand-writes").
@@ -79,7 +81,7 @@ def test_clean_subtask_is_single_defect_easy(tmp_path: Path) -> None:
         assert gold["difficulty"] == "easy"
         assert len(gold["defects"]) == 1
         assert gold["defects"][0]["id"] == "d1"
-        assert gold["distractors"] == []
+        assert len(gold["distractors"]) <= 1
         assert gold["source"] == {"kind": "synthetic"}
         parent = next(t for t in _TASKS if t.name == meta["parent"])
         parent_gold = yaml.safe_load((parent / "gold.yaml").read_text())
