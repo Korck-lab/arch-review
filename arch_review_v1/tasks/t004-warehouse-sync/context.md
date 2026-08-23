@@ -4,6 +4,8 @@
 
 The hub accepts a delta by id and is idempotent: pushing the same delta twice applies it once. It parses the request body directly as JSON and does not validate the Content-Type header, so a push succeeds regardless of the header urllib sends.
 
+Values that vary between environments (intervals, URLs, credentials) belong in environment variables, not in the source tree.
+
 `warehouse/app.py` creates the Flask app and opens the store connection. `warehouse/sync.py` imports `get_db` from `warehouse.app` and is the sync job that pushes pending deltas to the hub.
 
 ## The PR
