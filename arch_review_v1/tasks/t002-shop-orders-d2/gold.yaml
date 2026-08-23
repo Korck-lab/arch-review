@@ -6,7 +6,7 @@ defects:
   - id: d1
     category: contracts
     file: shop/orders.py
-    lines: [25, 30]
+    lines: [22, 27]
     summary: "customer lookup failure silently swallowed; page renders 'Unknown'"
     rationale: >
       The new try/except Exception turns a database outage or connection error

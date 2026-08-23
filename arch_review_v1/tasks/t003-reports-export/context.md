@@ -6,4 +6,4 @@
 
 ## The PR
 
-Title: "self-service CSV export". The PR adds the export endpoint that writes a report into the user's export folder and makes the storage read more tolerant of transient network errors by retrying. It claims the changes let users download their own reports reliably.
+Title: "self-service CSV export". The PR adds the export endpoint that writes a report into the user's export folder and adds retry logic to the storage read. It claims the changes let users download their own reports reliably.
