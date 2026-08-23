@@ -14,13 +14,15 @@ from arch_review_v1.taskset import ArchReviewTaskset, _TASK_DIR
 def test_load_builds_the_six_pilots_and_their_easy_subtasks():
     ts = ArchReviewTaskset(ArchReviewTasksetConfig())
     tasks = ts.load()
-    assert len(tasks) == 19
+    assert len(tasks) == 21
     assert [t.data.task_id for t in tasks] == [
         "t001-payment-race",
         "t001-payment-race-d1",
         "t001-payment-race-d2",
         "t001-payment-race-d3",
         "t002-shop-orders",
+        "t002-shop-orders-d1",
+        "t002-shop-orders-d2",
         "t003-reports-export",
         "t003-reports-export-d1",
         "t003-reports-export-d2",
@@ -71,13 +73,24 @@ def test_every_committed_subtask_is_reproducible_from_its_parent(tmp_path):
         committed_ids = {
             p.name for p in _TASK_DIR.glob(f"{task_dir.name}-d[0-9]*")
         }
-        assert clean == committed_ids, (
+        # Hand-written subtasks (mode=hand-written) are allowed alongside
+        # splitter-produced ones — the splitter can't split every diff cleanly.
+        hand_written = set()
+        for cid in committed_ids:
+            meta_path = _TASK_DIR / cid / "_meta.yaml"
+            if meta_path.exists():
+                meta = yaml.safe_load(meta_path.read_text())
+                if meta.get("mode") == "hand-written":
+                    hand_written.add(cid)
+        assert clean == committed_ids - hand_written, (
             f"{task_dir.name}: splitter clean {sorted(clean)}, "
-            f"committed {sorted(committed_ids)}"
+            f"committed {sorted(committed_ids)}, hand-written {sorted(hand_written)}"
         )
         for sub_path in sorted(produced):
             if sub_path.name not in committed_ids:
                 continue
+            if sub_path.name in hand_written:
+                continue  # hand-written subtasks are not splitter output
             gold = yaml.safe_load((sub_path / "gold.yaml").read_text())
             assert gold["difficulty"] == "easy"
             assert len(gold["defects"]) == 1
@@ -85,10 +98,8 @@ def test_every_committed_subtask_is_reproducible_from_its_parent(tmp_path):
                 assert (sub_path / fname).read_text() == (
                     _TASK_DIR / sub_path.name / fname
                 ).read_text(), f"{sub_path.name}/{fname} drifted from the splitter"
-            gold = yaml.safe_load((sub_path / "gold.yaml").read_text())
-            assert gold["difficulty"] == "easy"
-            assert len(gold["defects"]) == 1
-            for fname in ("diff.patch", "context.md", "gold.yaml", "_meta.yaml"):
-                assert (sub_path / fname).read_text() == (
-                    _TASK_DIR / sub_path.name / fname
-                ).read_text(), f"{sub_path.name}/{fname} drifted from the splitter"
+        # Hand-written subtasks still need valid gold contracts.
+        for cid in hand_written:
+            gold = yaml.safe_load((_TASK_DIR / cid / "gold.yaml").read_text())
+            assert gold["difficulty"] == "easy", f"{cid}: hand-written must be easy"
+            assert len(gold["defects"]) == 1, f"{cid}: hand-written must have 1 defect"

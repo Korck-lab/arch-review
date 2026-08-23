@@ -1,0 +1,29 @@
+id: t002-shop-orders-d1
+difficulty: easy
+source:
+  kind: synthetic
+defects:
+  - id: d1
+    category: data
+    file: shop/orders.py
+    lines: [24, 28]
+    summary: "N+1: customer name resolved with a per-order query after the join is dropped"
+    rationale: >
+      The old code resolved the customer name inside a single JOIN. The PR drops
+      the JOIN and looks the name up once per order row at 24-28, so a page with
+      50 orders issues 50 customer queries. Every row on this page shares one
+      customer id, because the outer query filters on customer_id, so the repeat
+      is pure waste. A senior reviewer would keep the JOIN, or resolve the name
+      once before the loop and reuse it.
+distractors:
+  - id: x1
+    file: shop/catalog.py
+    lines: [8, 14]
+    concern: "in-process cache could serve a stale title"
+    why_ok: >
+      Only existing product ids are cached, and product titles are immutable in
+      this catalog: a rename creates a new product id, so a cached title never
+      goes stale. A missing id raises inside _cached_title and is NOT cached, so
+      a product that appears later is never poisoned. This is a real
+      optimization, not a defect.
+prompt_notes: "PR description says: cache product lookups to speed up the orders page"

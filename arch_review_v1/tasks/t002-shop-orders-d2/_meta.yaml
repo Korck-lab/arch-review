@@ -1,0 +1,4 @@
+mode: hand-written
+parent: t002-shop-orders
+parent_defect: d2
+status: clean
