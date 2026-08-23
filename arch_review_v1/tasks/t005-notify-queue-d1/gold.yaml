@@ -17,5 +17,17 @@ defects:
     and let the provider dedupe replays.
 
     '
-distractors: []
+distractors:
+- id: x1
+  file: notify/sender.py
+  lines:
+  - 9
+  - 14
+  concern: the retry backoff blocks the worker with time.sleep
+  why_ok: 'The sleep runs only after provider.send raises TransientError, the failure path,
+    and is bounded: 0.2s then 0.4s, at most 0.6s before the third attempt raises. A worker
+    whose provider degrades backs off briefly and gives up; it does not stall. Bounded retry
+    backoff is not a defect.
+
+    '
 prompt_notes: 'PR description says: more robust delivery'

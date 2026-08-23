@@ -20,5 +20,19 @@ defects:
     \ Both symptoms are one mechanism: the new retry wrapper does not cover the transient\
     \ cases it claims. A reviewer would restore the bounded timeout and catch the read-time\
     \ failures urlopen can raise.\n"
-distractors: []
+distractors:
+- id: x1
+  file: reports/storage.py
+  lines:
+  - 16
+  - 27
+  concern: retry loop could mask a real failure
+  why_ok: 'Only transient failures are retried: transport URLErrors, direct timeouts (TimeoutError),
+    and retryable HTTP statuses (408, 429, 500, 502, 503, 504). Permanent HTTP statuses are
+    re-raised immediately, and the last attempt re-raises anything else, so a genuine failure
+    still surfaces loudly. The request is an idempotent GET, so a retried read cannot corrupt
+    state, and the backoff is bounded at three attempts. The retry cannot swallow a real failure;
+    its incomplete coverage is d2, not this concern.
+
+    '
 prompt_notes: 'PR description says: self-service CSV export'

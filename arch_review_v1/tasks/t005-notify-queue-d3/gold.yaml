@@ -18,5 +18,17 @@ defects:
     same change.
 
     '
-distractors: []
+distractors:
+- id: x1
+  file: notify/queue.py
+  lines:
+  - 15
+  - 25
+  concern: claim-then-update is a check-then-act race between workers
+  why_ok: "The UPDATE is conditional \u2014 WHERE id = %s AND claimed_by IS NULL \u2014 and\
+    \ only rows whose UPDATE matched (rowcount > 0) are returned. If two workers SELECT the\
+    \ same email, the second UPDATE matches zero rows and that worker drops it, so exactly\
+    \ one worker claims each email. The guarded UPDATE plus the rowcount check is the safety.\
+    \ This settles worker contention only; it says nothing about how many times the claiming\
+    \ worker then calls the provider.\n"
 prompt_notes: 'PR description says: more robust delivery'

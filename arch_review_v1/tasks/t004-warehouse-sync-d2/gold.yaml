@@ -16,5 +16,16 @@ defects:
     silently ignores any operator configuration. Config belongs outside the source tree.
 
     '
-distractors: []
+distractors:
+- id: x1
+  file: warehouse/sync.py
+  lines:
+  - 27
+  - 27
+  concern: blocking sleep inside the sync loop stalls the job
+  why_ok: 'sync_inventory runs only in the scheduler loop (run_forever); the request path
+    (request_sync) inserts one job row and returns immediately, so the sleep never runs inside
+    a request. The sleep is a deliberate hub rate limit, not a bug.
+
+    '
 prompt_notes: 'PR description says: decouple the sync job from the web app'

@@ -17,5 +17,18 @@ defects:
     \ call mints a fresh key and the gateway bills the card twice. The loop's dedup protects\
     \ retries inside one call only. A reviewer would derive the key from a stable order identifier\
     \ the caller passes in, or return the key for reuse.\n"
-distractors: []
+distractors:
+- id: x1
+  file: billing/charge.py
+  lines:
+  - 25
+  - 25
+  concern: the pre-check and retry backoff add latency to the checkout path
+  why_ok: 'A successful checkout adds one local balance read and no sleep; the retry backoff
+    runs only after a GatewayError, the exceptional path, and is bounded at 0.3s total. An
+    insufficient-funds checkout is rejected before the card call, the slowest round trip,
+    so the check makes the common failure case faster. The PR''s latency claim concerns the
+    success path, which gains one local read.
+
+    '
 prompt_notes: 'PR description says: improves checkout performance'
