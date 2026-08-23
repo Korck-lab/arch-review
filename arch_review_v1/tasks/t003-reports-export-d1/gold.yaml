@@ -17,5 +17,20 @@ defects:
     reject names containing path separators or leading dots.
 
     '
-distractors: []
+distractors:
+- id: x1
+  file: reports/export.py
+  lines:
+  - 21
+  - 21
+  concern: write_text is not atomic, so a crash or a concurrent reader can see a truncated
+    CSV at the target path
+  why_ok: 'The URL is returned only after write_text returns, so the file is complete before
+    it is advertised. The diff establishes no concurrent reader of the same path: nothing
+    in the supplied material serves or reads /exports/... while the write is in progress.
+    A crash mid-write leaves a partial file at a path that was never advertised for that export,
+    and the next export of the same name overwrites it. The concern needs a reader the material
+    does not establish, so it is speculative, not a defect.
+
+    '
 prompt_notes: 'PR description says: self-service CSV export'

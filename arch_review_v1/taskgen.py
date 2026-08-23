@@ -375,12 +375,21 @@ def decompose_one(task_dir: Path, parent_gold: dict, parent_context: str) -> lis
         status, reason = _coherence_status(
             kept_hunks, parent_hunks, spans, d["id"], defect
         )
+        # Inherit parent distractors that reference the same file as this
+        # defect.  Subtask distractors must explain why a suspicious pattern
+        # in the sub-diff is NOT a defect; only distractors that point at the
+        # defect's file can do that.  The contract caps easy tasks at 1
+        # distractor, so we take the first match and renumber to x1.
+        sub_distractors = []
+        for xd in distractors:
+            if xd.get("file") == d["file"] and len(sub_distractors) < 1:
+                sub_distractors.append({**xd, "id": "x1"})
         sub = SubTask(
             id=f"{parent_gold['id']}-{d['id']}",
             parent_id=parent_gold["id"],
             parent_defect_id=d["id"],
             defect=defect,
-            distractors=[],
+            distractors=sub_distractors,
             prompt_notes=parent_gold.get("prompt_notes", ""),
             source=parent_gold["source"],
             difficulty="easy",
