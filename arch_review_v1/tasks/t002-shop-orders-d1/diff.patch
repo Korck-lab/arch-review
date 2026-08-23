@@ -38,7 +38,7 @@ index b137c59..b4cac77 100644
 +        views.append(
 +            OrderView(
 +                order_id=row["id"],
-+                customer_name=customer["name"],
++                customer_name=customer["name"] if customer else "Unknown",
 +                items=[product_title(pid) for pid in product_ids],
 +                total_cents=row["total_cents"],
 +            )
