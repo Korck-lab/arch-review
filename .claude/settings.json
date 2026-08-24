@@ -1,6 +1,9 @@
 {
   "env": {
-    "ENABLE_TOOL_SEARCH": "auto:3"
+    "ENABLE_TOOL_SEARCH": "auto:3",
+    "CLAUDE_CODE_ENABLE_TELEMETRY": "0",
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "CLAUDE_CODE_ATTRIBUTION_HEADER" : "0"    
   },
   "permissions": {
     "deny": [
@@ -17,5 +20,39 @@
   "disableRemoteControl": true,
   "disableClaudeAiConnectors": true,
   "syncClaudeAiSkills": false,
-  "outputStyle": "Concise STE100"
+  "outputStyle": "Concise STE100",
+  "skillOverrides": {
+    "claude-in-chrome": "off",
+    "dataviz": "off",
+    "update-config": "off",
+    "keybindings-help": "off",
+    "fewer-permission-prompts": "off",
+    "schedule": "off",
+    "run": "off",
+    "init": "off"
+  },
+  "disableWorkflows": false,
+  "enabledPlugins": {
+    "pr-review-toolkit@claude-plugins-official": false,
+    "plugin-dev@claude-plugins-official": false,
+    "firecrawl@claude-plugins-official": false,
+    "cloudflare@claude-plugins-official": false,
+    "caveman@caveman": false,
+    "mattpocock-skills@mattpocock": false,
+    "feature-dev@claude-plugins-official": false,
+    "superpowers@claude-plugins-official": false,
+    "hookify@claude-plugins-official": false,
+    "claude-code-optimizer@claude-code-optimizer-marketplace": false,
+    "chrome-devtools-mcp@claude-plugins-official": false,
+    "claude-md-management@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": false,
+    "desktop-commander@claude-plugins-official": true,
+    "mcp-server-dev@claude-plugins-official": false,
+    "claude-code-setup@claude-plugins-official": true,
+    "code-review@claude-plugins-official": false,
+    "sourcegraph@claude-plugins-official": false,
+    "frontend-design@claude-plugins-official": false,
+    "slack@claude-plugins-official": true
+  }
 }
