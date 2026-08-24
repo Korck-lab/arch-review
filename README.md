@@ -8,8 +8,8 @@ An environment for the **Prime Intellect Environments Hub**. The model receives 
 - [x] Phase 1 — dataset: 6 curated pilot tasks (diffs with seeded defects), codex-adjudicated — see `docs/04-defect-taxonomy.md` and `docs/05-task-format.md`
 - [x] Phase 2 — verifiers v1 implementation (`Taskset` + two judges + F1 reward), smoke eval 3/3 green — see `docs/03-verifiers-v1.md`
 - [x] Phase 3 — model slate: 2 models × 21 tasks × 3 rollouts = 126 episodes, all completed
-- [ ] Phase 4 — `prime env push` (env not yet scaffolded on the hub)
-- [ ] Phase 5 — bounty application (draft kept outside this repo)
+- [x] Phase 4 — published: [korck/arch-review-v1](https://app.primeintellect.ai/dashboard/environments/korck/arch-review-v1) v0.1.2, public, Hub integration test green
+- [x] Phase 5 — bounty application submitted 24 Aug 2026 (SWE-Swiss Full Pipeline)
 
 ## Results
 
