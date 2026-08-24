@@ -8,3 +8,7 @@ dist/
 build/
 *.egg-info/
 outputs/
+
+# rascunho de candidatura (contem PII) - fora do repo publico
+docs/06-typeform.md
+docs/research/
