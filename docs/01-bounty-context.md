@@ -9,7 +9,7 @@
 
 ## The funnel
 1. Publish your own environment on the Hub (**this project**) — qualifies as "novel environments shared on the Environments Hub".
-2. Apply via the typeform: https://form.typeform.com/to/jLfT7v7o (fields in `06-typeform.md`).
+2. Apply via the typeform: https://form.typeform.com/to/jLfT7v7o (draft answers kept outside this repo).
 3. If SWE-Swiss goes to someone else meanwhile: Open plan Bs on the same spreadsheet — BFCL-v4 $1,500, AppWorld $1,000, Xbench-DeepSearch $600 (the same credential qualifies).
 
 ## References

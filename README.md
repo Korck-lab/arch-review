@@ -9,7 +9,7 @@ An environment for the **Prime Intellect Environments Hub**. The model receives 
 - [x] Phase 2 — verifiers v1 implementation (`Taskset` + two judges + F1 reward), smoke eval 3/3 green — see `docs/03-verifiers-v1.md`
 - [x] Phase 3 — model slate: 2 models × 21 tasks × 3 rollouts = 126 episodes, all completed
 - [ ] Phase 4 — `prime env push` (env not yet scaffolded on the hub)
-- [ ] Phase 5 — bounty typeform — see `docs/06-typeform.md`
+- [ ] Phase 5 — bounty application (draft kept outside this repo)
 
 ## Results
 
