@@ -1,6 +1,8 @@
 # Seeded defect taxonomy (manual curation — the soul of the project)
 
-Each task seeds 1–4 defects from distinct categories. Target: 30 tasks, balanced coverage, increasing difficulty. Each defect has a gold answer with a hand-written justification (this is the anti-"vibecoded").
+Each task seeds 1–4 defects from distinct categories. Every defect carries a gold answer with a hand-written justification — this is the anti-"vibecoded".
+
+v1 ships 6 curated scenarios covering all seven categories, plus 15 single-defect sub-tasks derived from them (ADR-0029). Breadth of coverage came first; task count is a later axis of growth.
 
 ## Categories (from Rafael's CTO/due-diligence repertoire)
 1. **Concurrency**: race condition, deadlock, check-then-act, shared state without lock

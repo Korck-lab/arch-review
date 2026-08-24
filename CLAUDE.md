@@ -10,15 +10,23 @@ The project is the qualifying credential for the SWE-Swiss (Full Pipeline) bount
 
 ## Current state
 
-Planning-only. No code exists yet; `docs/0*.md` hold the plan.
-Phase 2 introduces the Python verifier — `ReviewData`/`ReviewTask`/`Taskset`, judge, rewards — per `docs/03-verifiers-v1.md` and `docs/07-plan.md`.
+The verifier is implemented and scored. `arch_review_v1/` holds the taskset,
+the two-judge pipeline, and the F1 reward; `arch_review_v1/tasks/` holds 6
+curated scenarios plus 15 single-defect sub-tasks derived from them (ADR-0029).
+`docs/0*.md` hold the plan and the bounty context.
 
-## Planned commands
+## Commands
 
-No build, lint, or test exists yet. The intended toolchain is uv plus the Prime Intellect CLI:
-- `uv run init arch-review-v1` — scaffold the taskset (Phase 2)
-- `uv run eval arch-review-v1` — run the eval (Phase 2)
-- `prime login` / `prime env push` — publish (Phase 4)
+```bash
+uv run pytest                  # 79 tests
+uv run mypy arch_review_v1     # type check
+uv run eval arch-review-v1     # run the eval (needs a client + judge endpoint)
+prime env push arch-review     # publish to the Hub
+```
+
+`tools/claude_proxy.py` is a **dev-only** shim that serves the eval from a local
+`claude -p` instead of a paid provider. It is not part of the published
+environment and nothing in `arch_review_v1/` imports it.
 
 ## Repo rules
 

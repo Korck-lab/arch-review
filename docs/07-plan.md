@@ -2,8 +2,9 @@
 
 ## Phase 1 — Dataset (the bulk of the value; ~half a day+)
 - [x] Write 6 pilot tasks (1 per main category), with complete gold.yaml
-- [ ] Validate format by running 1 model by hand (no verifiers yet)
-- [ ] Complete 30 tasks (balance category × difficulty)
+- [x] Validate format by running 1 model by hand (covered by the first 6/6 episode run)
+- [x] 6 curated scenarios covering all 7 categories, decomposed into 15 single-defect sub-tasks (ADR-0029) — 21 tasks total.
+      The original "30 tasks" target is dropped for v1: the risk section below ranks shipping over breadth, and coverage of every category is already met.
 
 ## Phase 2 — Environment (~2-3h with scaffold)
 - [x] Scaffold and implement ReviewData/ReviewTask/Taskset (package `arch_review_v1`, 48 tests green)

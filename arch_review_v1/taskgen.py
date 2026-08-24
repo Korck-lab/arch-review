@@ -265,11 +265,13 @@ def _split_hunk(hunk: Hunk, kept: set[int]) -> list[Hunk]:
     for run in runs:
         old_lines = [l for l in run if l.old is not None]
         new_lines = [l for l in run if l.new is not None]
-        old_start = old_lines[0].old if old_lines else _insertion_old(hunk, run)
+        old_at = [l.old for l in run if l.old is not None]
+        new_at = [l.new for l in run if l.new is not None]
+        old_start = old_at[0] if old_at else _insertion_old(hunk, run)
         new_start = (
-            new_lines[0].new
-            if new_lines
-            else _deletion_new_start(hunk, old_lines[-1].old if old_lines else None)
+            new_at[0]
+            if new_at
+            else _deletion_new_start(hunk, old_at[-1] if old_at else None)
         )
         h = Hunk(
             old_start=old_start,
@@ -298,6 +300,8 @@ def _deletion_new_start(hunk: Hunk, last_old: int | None) -> int:
 def _insertion_old(hunk: Hunk, run: list[_Line]) -> int:
     """Old-file line just before a pure-addition run, from the parent hunk."""
     first_new = run[0].new
+    if first_new is None:
+        return hunk.old_start
     for line in _annotate(hunk):
         if line.new is not None and line.new < first_new and line.old is not None:
             return line.old + 1
@@ -380,7 +384,7 @@ def decompose_one(task_dir: Path, parent_gold: dict, parent_context: str) -> lis
         # in the sub-diff is NOT a defect; only distractors that point at the
         # defect's file can do that.  The contract caps easy tasks at 1
         # distractor, so we take the first match and renumber to x1.
-        sub_distractors = []
+        sub_distractors: list[dict] = []
         for xd in distractors:
             if xd.get("file") == d["file"] and len(sub_distractors) < 1:
                 sub_distractors.append({**xd, "id": "x1"})
@@ -632,13 +636,13 @@ def _close_undefined_names(
 
 
 def _hunk_from_lines(lines: list[_Line]) -> Hunk:
-    old_lines = [l for l in lines if l.old is not None]
-    new_lines = [l for l in lines if l.new is not None]
+    old_at = [l.old for l in lines if l.old is not None]
+    new_at = [l.new for l in lines if l.new is not None]
     return Hunk(
-        old_start=old_lines[0].old if old_lines else 0,
-        old_count=len(old_lines),
-        new_start=new_lines[0].new if new_lines else 0,
-        new_count=len(new_lines),
+        old_start=old_at[0] if old_at else 0,
+        old_count=len(old_at),
+        new_start=new_at[0] if new_at else 0,
+        new_count=len(new_at),
         lines=[l.prefix + l.text for l in lines],
     )
 
@@ -877,7 +881,12 @@ def generate(template_path: Path, out_dir: Path) -> Path:
         diff_text=diff_text,
         context_text=tpl["context"],
     )
-    return write_task(out_dir, sub, {"mode": "generated", "family": tpl.get("family", "")})
+    written = write_task(out_dir, sub, {"mode": "generated", "family": tpl.get("family", "")})
+    if written is None:
+        raise ValueError(
+            f"{template_path}: generated gold is invalid; the sub-task needs a hand-written gold"
+        )
+    return written
 
 
 def _diff_to_hunks(path: str, base_lines: list[str], defective_lines: list[str]) -> list[Hunk]:
