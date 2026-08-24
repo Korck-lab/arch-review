@@ -12,3 +12,6 @@ outputs/
 # rascunho de candidatura (contem PII) - fora do repo publico
 docs/06-typeform.md
 docs/research/
+
+# prime CLI push state (regenerated on every `prime env push`)
+.prime/
