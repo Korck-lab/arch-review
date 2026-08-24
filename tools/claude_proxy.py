@@ -40,7 +40,20 @@ PROXY_MODEL = os.environ.get("CLAUDE_PROXY_MODEL", "deepseek-v4-flash")
 # Stronger alias for judge calls. The eval asks for anthropic/claude-sonnet-5
 # as judge; this local path has no sonnet, so the closest stronger model is
 # deepseek-v4-pro. Same passthrough rule as PROXY_MODEL.
-PROXY_JUDGE_MODEL = os.environ.get("CLAUDE_PROXY_JUDGE_MODEL", "mimo-v2.5-pro")
+PROXY_JUDGE_MODEL = os.environ.get("CLAUDE_PROXY_JUDGE_MODEL", "sonnet")
+
+# Public Anthropic aliases resolve against api.anthropic.com, not the DeepSeek
+# proxy. A call carrying one of these must not inherit ANTHROPIC_BASE_URL, or
+# the gateway answers for a model it does not host.
+ANTHROPIC_ALIASES = frozenset({"sonnet", "opus", "haiku", "fable"})
+
+
+def is_anthropic_model(model: str | None) -> bool:
+    """True when the model is a public Anthropic alias served upstream."""
+    if not model:
+        return False
+    head = model.split("-", 1)[0].lower()
+    return head in ANTHROPIC_ALIASES
 _FENCE = re.compile(r"^\s*```(?:json)?\s*|\s*```\s*$", re.MULTILINE)
 
 
@@ -129,8 +142,14 @@ def run_claude(prompt: str, model: str | None, timeout: int = 300) -> tuple[str,
     if model:
         argv += ["--model", model]
     env = os.environ.copy()
-    env["ANTHROPIC_BASE_URL"] = DEEPSEEK_BASE_URL
-    env["CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY"] = "1"
+    if is_anthropic_model(model):
+        # A public alias is served by api.anthropic.com. Drop the DeepSeek
+        # wiring so the CLI uses its own default endpoint and credentials.
+        env.pop("ANTHROPIC_BASE_URL", None)
+        env.pop("CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY", None)
+    else:
+        env["ANTHROPIC_BASE_URL"] = DEEPSEEK_BASE_URL
+        env["CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY"] = "1"
     # The CLI auto-generates a session title with the configured default model.
     # A gateway model alias makes that call hard-fail and exits `claude -p`
     # with code 1 before any output. Title generation is nonessential traffic;

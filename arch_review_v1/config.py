@@ -19,8 +19,8 @@ class ArchReviewJudgeConfig(vf.JudgeConfig):
 
     model: str = "anthropic/claude-sonnet-5"
     sampling: SamplingConfig = SamplingConfig(temperature=0.0)
-    extractor_prompt: str = "claim_extractor.v1.md"
-    matcher_prompt: str = "matcher.v1.md"
+    extractor_prompt: str = "claim_extractor.v2.md"
+    matcher_prompt: str = "matcher.v2.md"
 
 
 class ArchReviewTaskConfig(vf.TaskConfig):
