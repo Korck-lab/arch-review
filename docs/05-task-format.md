@@ -34,4 +34,5 @@ prompt_notes: "PR says 'improves checkout performance'"
 - **defect_recall**: judge compares each issue in the model's review with `defects[]` (semantic match: same file/theme/cause). recall = matched/total.
 - **precision**: model issues with no match in `defects[]` and not explained by the `distractors` count as false alarms. precision = matched/claimed.
 - Suggested final reward: harmonic mean (F1), plus per-category metrics for the README.
-- Judge: fixed rubric, temperature 0, `claude-sonnet-5`, overridable via `env.taskset.task.judge.model`; judge prompt versioned in `prompts/judge/*.v1.md`.
+- Judge: fixed rubric, `claude-sonnet-5`, overridable via `env.taskset.task.judge.model`; judge prompt versioned in `prompts/judge/*.v1.md`.
+- The judge asks for `temperature=0.0` (`config.py:21`) and sends it on the wire (`verifiers/v1/judge.py:178`). The dev shim `tools/claude_proxy.py` **discards** it, so a run through the shim is not temperature-pinned. See the README section "Reproducibility".
