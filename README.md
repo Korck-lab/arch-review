@@ -7,27 +7,54 @@ An environment for the **Prime Intellect Environments Hub**. The model receives 
 ## Status
 - [x] Phase 1 — dataset: 6 curated pilot tasks (diffs with seeded defects), codex-adjudicated — see `docs/04-defect-taxonomy.md` and `docs/05-task-format.md`
 - [x] Phase 2 — verifiers v1 implementation (`Taskset` + two judges + F1 reward), smoke eval 3/3 green — see `docs/03-verifiers-v1.md`
-- [~] Phase 3 — local eval, 1 model scored (6/6 episodes); 2–3 model slate pending
+- [x] Phase 3 — model slate: 2 models × 21 tasks × 3 rollouts = 126 episodes, all completed
 - [ ] Phase 4 — `prime env push` (env not yet scaffolded on the hub)
 - [ ] Phase 5 — bounty typeform — see `docs/06-typeform.md`
 
 ## Results
 
-Reviewer under test: a flash-tier model routed through the local `claude -p` proxy. Three episodes per task, means reported. F1 combines defect recall with precision; false alarms penalize precision.
+Two reviewer models, 21 tasks, 3 rollouts per task per model. 126 episodes, all completed. Means reported.
 
-| Task | F1 | Recall | Precision | Claims | False alarms |
+The 21 tasks split into two populations that are **not comparable to each other**. The 6 curated tasks carry 2–4 seeded defects each in a full diff. The 15 sub-tasks are narrowed slices derived from the curated set, each carrying exactly 1 seeded defect. With one defect available, the same claim count produces far more false alarms, so precision falls. The tables stay separate for that reason.
+
+### Curated tasks (6 tasks, 18 rollouts per model)
+
+| Model | F1 | Recall | Precision | Claims | False alarms |
 |---|---|---|---|---|---|
-| t001-payment-race | 0.62 | 0.83 | 0.50 | 4.0 | 1.7 |
-| t002-shop-orders | 0.87 | 1.00 | 0.78 | 3.0 | 0.7 |
-| t003-reports-export | 0.71 | 1.00 | 0.56 | 3.7 | 1.7 |
-| t004-warehouse-sync | 0.66 | 1.00 | 0.50 | 5.0 | 2.3 |
-| t005-notify-queue | 1.00 | 1.00 | 1.00 | 2.7 | 0.0 |
-| t006-customer-webhooks | 0.82 | 1.00 | 0.72 | 3.0 | 1.0 |
-| **Mean** | **0.78** | **0.97** | **0.68** | **3.6** | **1.2** |
+| claude-haiku-4-5 | **0.848** | 0.887 | 0.840 | 4.11 | 0.78 |
+| claude-opus-5 | 0.828 | 0.880 | 0.826 | 4.17 | 0.72 |
+
+### Sub-tasks (15 tasks, 45 rollouts per model)
+
+| Model | F1 | Recall | Precision | Claims | False alarms |
+|---|---|---|---|---|---|
+| claude-opus-5 | **0.556** | 0.956 | 0.453 | 3.33 | 1.76 |
+| claude-haiku-4-5 | 0.492 | 0.933 | 0.363 | 4.13 | 2.33 |
+
+**The ranking inverts between the two tables.** Haiku wins on curated, Opus wins on sub-tasks. Pooling the 21 tasks would report 0.634 for Opus against 0.594 for Haiku and hide the split entirely. That inversion is the main reason this environment is worth running: a single pooled number misreports which model reviews better.
+
+Recall is high in both populations (0.88–0.96). Precision is what separates them, and false alarms are what move precision. Haiku produces more claims than Opus on sub-tasks (4.13 vs 3.33) and pays for it (2.33 false alarms vs 1.76).
 
 **Method.** The model reads the diff plus task context and writes a free-form review. A gold-blind claim extractor turns the review into one claim per distinct issue; a matcher maps each claim to the seeded gold (defect, distractor, or false alarm). Recall credits each seeded defect once at its best match status; precision is the share of claims that are not false alarms; F1 is their harmonic mean. An empty review scores recall 0, precision 1.0, F1 0.
 
-**Reading.** The reviewer is told to report only high-confidence, diff-supported defects and to consolidate symptoms of one root cause. That keeps it precise: a mean of 1.2 false alarms per task instead of unconstrained listing. Recall stays near perfect (0.97); the one miss is a concurrency defect a rollout judged too theoretical. The eval discriminates — the clean task (t005) scores 1.00, the two-defect race task (t001) the lowest.
+**Judge degradation.** The judge validates that every extracted claim quotes the review verbatim. A claim set that fails validation is retried once, then degraded to empty rather than crashing the rollout (ADR-0003). That degradation fired on 1 rollout out of 126 (Opus, sub-tasks). It is counted in the means above, not excluded.
+
+### Reproducibility — what this run does and does not establish
+
+The reviewer and both judges run through `tools/claude_proxy.py`, a dev shim that translates the Anthropic Messages API into a `claude -p` subprocess. **The shim passes only `--model`. It discards `temperature`, `max_tokens` and thinking config.** So the numbers above were not produced at a pinned sampling temperature, and re-running them will not reproduce them byte for byte.
+
+A separate control run tested whether the judge itself is deterministic when temperature is actually honoured. It pointed the judge at a local ollama backend at `temperature=0.0` and replayed one fixed real review of `t001-payment-race`:
+
+- `verifiers` does send the temperature on the wire (`verifiers/v1/judge.py:178`), so the loss is in the shim, not the framework.
+- `qwen2.5:7b-instruct` cannot serve as judge here. It emits schema-valid JSON but paraphrases its quotes, so the verbatim validator rejects it on 3 of 3 runs. Its determinism is therefore untested, not disproved.
+- `llama3.1:8b` completes the pipeline. The claim extractor produced a byte-identical output on 3 of 3 runs. The matcher produced two distinct outputs across the same 3 runs (F1 0.800, 0.857, 0.857).
+- Isolating that matcher divergence failed. Replaying the identical matcher prompt gave byte-identical output across 18+ replays. Adding an explicit seed changed nothing; cold versus warm model load changed nothing; schema-constrained decoding versus free-form decoding were each internally identical; loading a second model to force memory pressure did not reproduce it.
+
+**Honest state: one unexplained matcher divergence stands against 18+ identical controlled replays. End-to-end judge determinism is not established, and this README does not claim it.**
+
+### Excluded from the slate
+
+A third model, `claude-fable-5`, was run and is **excluded**. 49 of its 63 rollouts died on `502 — claude -p failed (1)` with an empty proxy error body. The 11 survivors all fall on `t001-payment-race` and its 3 derived sub-tasks — one task, zero coverage of the other 17. Their mean F1 of 0.691 would outrank both surviving models purely through selection, so it is not published as a comparable result.
 
 ## Local run without paid inference (dev)
 
