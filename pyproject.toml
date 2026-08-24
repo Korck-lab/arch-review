@@ -1,7 +1,9 @@
 [project]
 name = "arch-review-v1"
 description = "Architectural code review eval environment for the Prime Intellect Environments Hub"
-version = "0.1.0"
+version = "0.1.1"
+readme = "README.md"
+tags = ["code-review", "evaluation", "llm-judge", "software-engineering", "code-quality", "defect-detection"]
 requires-python = ">=3.11,<3.14"
 dependencies = [
     "verifiers @ git+https://github.com/PrimeIntellect-ai/verifiers.git",
