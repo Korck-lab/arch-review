@@ -33,13 +33,22 @@ class ArchReviewBudgetConfig(BaseModel):
     """Run-level judge spend limits (issue #5): $10 target, $12 hard stop.
 
     ``prices`` maps a judge model id to a (input, output) USD-per-1M-token rate
-    card. It is intentionally empty by default: the runner must supply the
-    provider's published prices, which the smoke eval calibrates.
+    card. The default judge ships priced, so the guard is live out of the box;
+    an empty rate card silently disables it. Add an entry when you point the
+    judge at another model.
+
+    Rates are Anthropic's published list prices (read 24/Aug/2026). Sonnet 5
+    also had a $2.00/$10.00 introductory rate through 2026-08-31; the durable
+    price is used here so the guard does not under-count after it lapses.
     """
 
     target: float = 10.0
     hard_stop: float = 12.0
-    prices: dict[str, PRICE_T] = {}
+    prices: dict[str, PRICE_T] = {
+        "anthropic/claude-sonnet-5": (3.00, 15.00),
+        "anthropic/claude-opus-5": (5.00, 25.00),
+        "anthropic/claude-haiku-4-5": (1.00, 5.00),
+    }
 
     @field_validator("prices")
     @classmethod
