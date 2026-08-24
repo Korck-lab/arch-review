@@ -19,23 +19,34 @@ The 21 tasks split into two populations that are **not comparable to each other*
 
 ### Curated tasks (6 tasks, 18 rollouts per model)
 
-| Model | F1 | Recall | Precision | Claims | False alarms |
-|---|---|---|---|---|---|
-| claude-haiku-4-5 | **0.848** | 0.887 | 0.840 | 4.11 | 0.78 |
-| claude-opus-5 | 0.828 | 0.880 | 0.826 | 4.17 | 0.72 |
+| Model | F1 | Recall | Precision | Claims | False alarms | Distractor hits |
+|---|---|---|---|---|---|---|
+| claude-haiku-4-5 | **0.833** | 0.887 | 0.807 | 4.11 | 0.78 | 0.11 |
+| claude-opus-5 | 0.758 | 0.880 | 0.694 | 4.17 | 0.72 | 0.67 |
 
 ### Sub-tasks (15 tasks, 45 rollouts per model)
 
-| Model | F1 | Recall | Precision | Claims | False alarms |
-|---|---|---|---|---|---|
-| claude-opus-5 | **0.556** | 0.956 | 0.453 | 3.33 | 1.76 |
-| claude-haiku-4-5 | 0.492 | 0.933 | 0.363 | 4.13 | 2.33 |
+| Model | F1 | Recall | Precision | Claims | False alarms | Distractor hits |
+|---|---|---|---|---|---|---|
+| claude-opus-5 | **0.526** | 0.956 | 0.427 | 3.33 | 1.76 | 0.29 |
+| claude-haiku-4-5 | 0.476 | 0.933 | 0.345 | 4.13 | 2.33 | 0.13 |
 
-**The ranking inverts between the two tables.** Haiku wins on curated, Opus wins on sub-tasks. Pooling the 21 tasks would report 0.634 for Opus against 0.594 for Haiku and hide the split entirely. That inversion is the main reason this environment is worth running: a single pooled number misreports which model reviews better.
+**The ranking inverts between the two tables.** Haiku leads on curated by 0.075; Opus leads on sub-tasks by 0.050. Pooling the 21 tasks would hide the split.
 
-Recall is high in both populations (0.88–0.96). Precision is what separates them, and false alarms are what move precision. Haiku produces more claims than Opus on sub-tasks (4.13 vs 3.33) and pays for it (2.33 false alarms vs 1.76).
+**How much of that inversion is real: not established at 95%.** The 21 task directories come from only 6 independently authored scenarios — the 15 sub-tasks are slices of those same 6 diffs (ADR-0029), and the 3 rollouts per task measure sampling noise, not new task evidence. A paired bootstrap that resamples the 6 parent scenarios puts both gaps astride zero:
 
-**Method.** The model reads the diff plus task context and writes a free-form review. A gold-blind claim extractor turns the review into one claim per distinct issue; a matcher maps each claim to the seeded gold (defect, distractor, or false alarm). Recall credits each seeded defect once at its best match status; precision is the share of claims that are not false alarms; F1 is their harmonic mean. An empty review scores recall 0, precision 1.0, F1 0.
+| Population | Gap (haiku − opus) | 95% CI | P(haiku ahead) |
+|---|---|---|---|
+| Curated | +0.075 | [−0.019, +0.176] | 0.93 |
+| Sub-tasks | −0.050 | [−0.134, +0.019] | 0.08 |
+
+Reproduce with `python tools/significance.py claude-haiku-4-5 claude-opus-5 outputs/<run-dir> ...`. The direction is consistent — 0.93 against 0.08 is a clean flip — but 6 scenarios cannot separate either model at 95%. **Read the inversion as the effect this environment is built to expose, not as a measured ranking.** Closing it needs independently authored scenarios, not more rollouts on these six.
+
+Recall is high in both populations (0.88–0.96). Precision separates the models, and false alarms move precision. Haiku claims more than Opus on sub-tasks (4.13 vs 3.33) and pays for it (2.33 false alarms vs 1.76). On curated tasks the axis reverses: Opus hits planted distractors six times as often (0.67 vs 0.11), which is what costs it the curated lead.
+
+**Method.** The model reads the diff plus task context and writes a free-form review. A gold-blind claim extractor turns the review into one claim per distinct issue; a matcher maps each claim to the seeded gold (defect, distractor, or false alarm). Recall credits each seeded defect once at its best match status. Precision is `matched / (claims − duplicates)`: a claim against a planted distractor is working code called a bug, so it costs precision like any other false alarm (ADR-0030). F1 is their harmonic mean. An empty review scores recall 0, precision 1.0, F1 0.
+
+**Rescored under ADR-0030.** The slate above is the same 126 episodes as before, rescored. The original formula exempted distractor hits from the precision denominator, which made every planted distractor free and left the dataset's precision probe disconnected from the reward. `tools/results_table.py` recomputes F1 from the stored trace metrics under the live formula; the arithmetic is exact and needs no new judge call. Curated F1 moved 0.828→0.758 (Opus) and 0.848→0.833 (Haiku); sub-tasks moved 0.556→0.526 and 0.492→0.476.
 
 **Judge degradation.** The judge validates that every extracted claim quotes the review verbatim. A claim set that fails validation is retried once, then degraded to empty rather than crashing the rollout (ADR-0003). That degradation fired on 1 rollout out of 126 (Opus, sub-tasks). It is counted in the means above, not excluded.
 

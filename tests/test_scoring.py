@@ -82,7 +82,8 @@ def test_false_alarm_penalizes_precision():
     assert score.false_alarms == 1
 
 
-def test_distractor_claim_is_exempt_from_precision():
+def test_distractor_claim_costs_precision():
+    """ADR-0030: calling planted correct code a bug is a false alarm."""
     defects = [_defect("d1")]
     claims = [_claim("c1"), _claim("c2")]
     verdicts = [
@@ -91,8 +92,9 @@ def test_distractor_claim_is_exempt_from_precision():
     ]
     score = score_review(defects, claims, verdicts)
     assert score.recall == pytest.approx(1.0)
-    assert score.precision == pytest.approx(1.0)  # distractor excluded from denominator
+    assert score.precision == pytest.approx(0.5)  # distractor stays in the denominator
     assert score.distractor_hits == 1
+    assert score.f1 == pytest.approx(2 * 0.5 * 1.0 / 1.5)
 
 
 def test_empty_review_scores_zero_precision_one_flagged_by_claims():
@@ -104,13 +106,14 @@ def test_empty_review_scores_zero_precision_one_flagged_by_claims():
     assert score.claim_count == 0  # the empty-review flag
 
 
-def test_all_distractors_give_empty_denominator_precision_one():
+def test_a_review_of_only_distractors_scores_zero_precision():
+    """ADR-0030: a review that only flags planted correct code earns nothing."""
     defects = [_defect("d1")]
     claims = [_claim("c1")]
     verdicts = [_verdict("c1", "distractor", distractor_file="billing/retry.py")]
     score = score_review(defects, claims, verdicts)
     assert score.recall == 0.0
-    assert score.precision == pytest.approx(1.0)
+    assert score.precision == pytest.approx(0.0)
     assert score.f1 == 0.0
 
 

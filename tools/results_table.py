@@ -21,6 +21,39 @@ from statistics import mean
 _SUBTASK = re.compile(r"-d[0-9]+$")
 
 
+def rescore(ms: dict, recorded_f1: float) -> tuple[float, float]:
+    """(f1, precision) under the live formula, recomputed from stored metrics.
+
+    A `traces.jsonl` is frozen at the formula that produced it. ADR-0030 moved
+    distractor hits back into the precision denominator, so every trace written
+    before it carries a stale `precision` and a stale `f1` reward. The stored
+    metrics are enough to redo the arithmetic exactly, with no judge call:
+    `matched` is recoverable from the old precision and its own denominator.
+
+    Returns the recorded values unchanged when the trace has no claims, or when
+    a metric needed for the recompute is absent.
+    """
+    try:
+        claims = ms["claim_count"]
+        distractor = ms["distractor_hits"]
+        duplicate = ms["duplicate"]
+        recall = ms["recall"]
+        old_precision = ms["precision"]
+    except KeyError:
+        return recorded_f1, ms.get("precision", 0.0)
+    if claims == 0:
+        return recorded_f1, old_precision
+
+    old_scoreable = claims - distractor - duplicate
+    # Every claim was a distractor or a duplicate, so nothing matched.
+    matched = round(old_precision * old_scoreable) if old_scoreable > 0 else 0
+
+    scoreable = claims - duplicate
+    precision = 1.0 if scoreable <= 0 else matched / scoreable
+    f1 = 0.0 if precision + recall == 0 else 2 * precision * recall / (precision + recall)
+    return f1, precision
+
+
 def model_of(run_dir: Path) -> str:
     """Reviewer id from a run dir named `<env>--<provider>--<model>--<harness>--<hash>`."""
     parts = run_dir.name.split("--")
@@ -39,7 +72,10 @@ def rollouts(run_dir: Path):
             if "f1" not in rewards:
                 continue
             model = (trace.get("agent") or {}).get("model") or model_of(run_dir)
-            yield model, task_id, rewards["f1"]["score"], trace.get("metrics") or {}
+            ms = dict(trace.get("metrics") or {})
+            f1, precision = rescore(ms, rewards["f1"]["score"])
+            ms["precision"] = precision
+            yield model, task_id, f1, ms
 
 
 def table(rows: dict[str, dict[str, list]], models: list[str]) -> str:

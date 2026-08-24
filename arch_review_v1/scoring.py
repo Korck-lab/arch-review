@@ -1,9 +1,11 @@
 """Deterministic scoring of one review. Pure functions; the test seam.
 
-Scoring follows the locked formula (issue #3):
+Scoring follows the locked formula (issue #3), as amended by ADR-0030:
 - recall = (full + 0.5 x partial) / D, 1.0 when D == 0;
-- precision = matched / (claims - distractor_hits - duplicate), 1.0 on empty
-  denominator;
+- precision = matched / (claims - duplicate), 1.0 on empty denominator. A claim
+  against a planted distractor is correct-looking code called a bug, so it costs
+  precision exactly like any other false alarm (ADR-0030 reverses the earlier
+  "distractor exempt" rule). ``distractor_hits`` stays a reported metric;
 - a claim matching an already-fully-credited defect is neutral: excluded from
   numerator and denominator, logged as ``duplicate``;
 - F1 = 2PR/(P+R), 0 when P+R == 0;
@@ -106,7 +108,10 @@ def score_review(
     d = len(defects)
     recall = 1.0 if d == 0 else (len(full_credited) + 0.5 * len(partial_credited)) / d
 
-    scoreable = claim_count - distractor_hits - duplicate
+    # ADR-0030: a distractor hit is a false alarm. It stays in the denominator,
+    # so planting a distractor exerts real precision pressure. Only the neutral
+    # duplicate leaves the denominator.
+    scoreable = claim_count - duplicate
     precision = 1.0 if scoreable <= 0 else matched_claims / scoreable
 
     if precision + recall == 0:

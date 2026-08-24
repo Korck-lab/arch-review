@@ -22,7 +22,8 @@
 
 ## Phase 5 — Apply
 - [x] Typeform filled and submitted 24 Aug 2026 with Rafael's ok.
-      The draft left the public repo (it held an e-mail address); the submitted copy is kept outside the repo.
+      The draft was removed from the working tree (it held an e-mail address) and the submitted copy is kept outside the repo.
+      It remains in git history at `8c829fa` and `aabb7ff`. Purging it buys nothing: the same address is the author of every commit.
 
 ## Risks
 - SWE-Swiss assigned to someone else during the build → plan Bs on the same credential
