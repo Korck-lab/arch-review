@@ -18,6 +18,11 @@ from __future__ import annotations
 
 from arch_review_v1.schemas import Claim, Defect, Verdict
 
+#: Formula 1 exempted distractor hits from the precision denominator. Formula 2
+#: charges for them (ADR-0030). Bump this whenever the reward math changes, so a
+#: saved trace always says which rule scored it.
+SCORING_FORMULA = 2.0
+
 
 class ReviewScore:
     """The per-task score and the metrics recorded on the trace."""
@@ -47,6 +52,11 @@ class ReviewScore:
     @property
     def metrics(self) -> dict[str, float]:
         out = {
+            # Which precision formula produced this trace. A reader that rescores
+            # a saved run must not apply the ADR-0030 correction twice, and the
+            # numbers alone cannot tell the two formulas apart. Traces written
+            # before this marker existed are formula 1 by absence.
+            "scoring_formula": SCORING_FORMULA,
             "recall": self.recall,
             "precision": self.precision,
             "distractor_hits": float(self.distractor_hits),

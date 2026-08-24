@@ -30,9 +30,13 @@ def rescore(ms: dict, recorded_f1: float) -> tuple[float, float]:
     metrics are enough to redo the arithmetic exactly, with no judge call:
     `matched` is recoverable from the old precision and its own denominator.
 
-    Returns the recorded values unchanged when the trace has no claims, or when
-    a metric needed for the recompute is absent.
+    Returns the recorded values unchanged when the trace already carries the
+    live formula's marker, when it has no claims, or when a metric needed for
+    the recompute is absent. The marker matters: applying the correction to an
+    already-corrected trace would silently produce a third, wrong number.
     """
+    if ms.get("scoring_formula", 1.0) >= 2.0:
+        return recorded_f1, ms.get("precision", 0.0)
     try:
         claims = ms["claim_count"]
         distractor = ms["distractor_hits"]

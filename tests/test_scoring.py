@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from arch_review_v1.schemas import Claim, Defect, Verdict
-from arch_review_v1.scoring import score_review
+from arch_review_v1.scoring import SCORING_FORMULA, score_review
 
 
 def _defect(defect_id: str = "d1", category: str = "concurrency") -> Defect:
@@ -181,6 +181,7 @@ def test_metrics_names_present():
     verdicts = [_verdict("c1", "matched", "d1")]
     metrics = score_review(defects, claims, verdicts).metrics
     for name in (
+        "scoring_formula",
         "recall",
         "precision",
         "distractor_hits",
@@ -191,3 +192,10 @@ def test_metrics_names_present():
         "recall_concurrency",
     ):
         assert name in metrics
+
+
+def test_metrics_carry_the_live_formula_marker():
+    """A saved trace must say which precision rule scored it (ADR-0030)."""
+    metrics = score_review([_defect("d1")], [_claim("c1")], [_verdict("c1", "matched", "d1")]).metrics
+    assert metrics["scoring_formula"] == SCORING_FORMULA
+    assert SCORING_FORMULA >= 2.0
