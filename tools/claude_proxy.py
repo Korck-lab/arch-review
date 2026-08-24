@@ -36,11 +36,13 @@ CLAUDE_BIN = os.environ.get("CLAUDE_BIN", "claude")
 # `deepseek-v4-flash` is treated as a custom model: `claude -p` warns and passes
 # it through, and the proxy on :8016 routes it directly. 200k context is ample
 # for these ~40k-token prompts, so the `[1m]` window suffix is not needed.
-PROXY_MODEL = os.environ.get("CLAUDE_PROXY_MODEL", "deepseek-v4-flash")
-# Stronger alias for judge calls. The eval asks for anthropic/claude-sonnet-5
-# as judge; this local path has no sonnet, so the closest stronger model is
-# deepseek-v4-pro. Same passthrough rule as PROXY_MODEL.
+PROXY_MODEL = os.environ.get("CLAUDE_PROXY_MODEL", "haiku")
+# Alias used for judge calls. config.py pins the judge to anthropic/claude-sonnet-5,
+# so judge traffic is routed by matching that exact id rather than by guessing at
+# substrings of the reviewer's name.
 PROXY_JUDGE_MODEL = os.environ.get("CLAUDE_PROXY_JUDGE_MODEL", "sonnet")
+# The model id config.py sends for judge calls. Anything else is a reviewer call.
+PROXY_JUDGE_REQUEST_ID = os.environ.get("CLAUDE_PROXY_JUDGE_REQUEST_ID", "claude-sonnet-5")
 
 # Public Anthropic aliases resolve against api.anthropic.com, not the DeepSeek
 # proxy. A call carrying one of these must not inherit ANTHROPIC_BASE_URL, or
@@ -67,13 +69,15 @@ def strip_fences(text: str) -> str:
 def request_model(body: dict) -> str | None:
     """The model for `claudei -p --model`, honoring the caller's request.
 
-    The eval sends reviewer calls as deepseek/deepseek-v4-flash and judge
-    calls as anthropic/claude-sonnet-5. A judge request maps to the stronger
-    pro alias; anything else uses the pinned flash alias. A request that does
-    not say flash or sonnet keeps the pinned default.
+    Judge calls carry PROXY_JUDGE_REQUEST_ID (config.py's pinned judge id) and
+    map to PROXY_JUDGE_MODEL. Every other request is a reviewer call and maps to
+    PROXY_MODEL, whatever id the runner asked for. Matching on the exact judge id
+    keeps the two roles apart even when both are Anthropic aliases -- an earlier
+    substring heuristic ("sonnet" or "pro" in the name) would have routed an
+    opus reviewer correctly only by accident.
     """
     requested = (body.get("model") or "").lower()
-    if "sonnet" in requested or "pro" in requested:
+    if PROXY_JUDGE_REQUEST_ID.lower() in requested:
         return PROXY_JUDGE_MODEL
     return PROXY_MODEL
 
