@@ -12,8 +12,8 @@
 - [x] `uv run eval` smoke test with 3 tasks — runs via `tools/claude_proxy.py` + `claude -p` (no paid inference), 3/3 episodes scored, avg F1 0.50
 
 ## Phase 3 — Results (~2h + API cost)
-- [x] Full eval on 2 models — `claude-opus-5` and `claude-haiku-4-5`, 21 tasks × 3 rollouts each, 126 episodes.
-      A third model, `claude-fable-5`, was run and excluded: 49 of 63 rollouts died on proxy `502`. See the README.
+- [x] Full eval on 3 models — `claude-opus-5`, `claude-haiku-4-5` and `claude-fable-5`, 21 tasks × 3 rollouts each, 189 episodes.
+      Fable's first pass lost 49 of 63 rollouts to proxy `502` and shipped excluded; a later full pass completed 63/63. See the README.
 - [x] Final README in English: methodology, score table, per-category analysis
 
 ## Phase 4 — Publish
